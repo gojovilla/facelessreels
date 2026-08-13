@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Video,
@@ -13,18 +13,23 @@ import {
   Send,
   Heart,
   Globe,
-  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
+import { subscribeToNewsletter } from "@/app/actions/newsletter";
 
 export function Footer() {
   const [emailInput, setEmailInput] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (emailInput.trim()) {
-      setSubscribed(true);
+      startTransition(async () => {
+        await subscribeToNewsletter(emailInput);
+        setSubscribed(true);
+      });
     }
   };
 
@@ -61,17 +66,25 @@ export function Footer() {
                 <input
                   type="email"
                   required
+                  disabled={isPending}
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="Enter your creator email..."
-                  className="w-full sm:w-72 px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full sm:w-72 px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md shadow-purple-600/30 transition-all flex items-center justify-center gap-1.5 shrink-0"
+                  disabled={isPending}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md shadow-purple-600/30 transition-all flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer"
                 >
-                  <span>Subscribe Free</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  {isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Subscribe Free</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
                 </button>
               </form>
             )}
