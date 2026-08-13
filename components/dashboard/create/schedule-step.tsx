@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Clock,
@@ -14,6 +14,7 @@ import {
   Loader2,
   Tv,
   CheckCircle2,
+  Globe,
 } from "lucide-react";
 import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
 
@@ -21,7 +22,7 @@ export interface ScheduleStepData {
   seriesName: string;
   durationOption: "30-50 sec video" | "60-70 sec video";
   platforms: string[]; // ["tiktok", "youtube", "instagram", "email"]
-  publishTime: string;
+  publishTime: string; // "18:30"
 }
 
 interface ScheduleStepProps {
@@ -36,14 +37,15 @@ interface ScheduleStepProps {
   onBack: () => void;
   onSubmit: (data: ScheduleStepData) => void;
   isSubmitting?: boolean;
+  isEditing?: boolean;
 }
 
-const PUBLISH_TIME_OPTIONS = [
-  "Daily @ 6:30 PM (Peak Evening)",
-  "Daily @ 9:15 AM (Morning Commute)",
-  "Daily @ 12:30 PM (Lunch Break)",
-  "Daily @ 8:00 PM (Late Night Focus)",
-  "3x Weekly (Mon / Wed / Fri @ 6:00 PM)",
+const TIME_PRESETS = [
+  { label: "09:15 AM", value: "09:15", desc: "Morning Commute" },
+  { label: "12:30 PM", value: "12:30", desc: "Lunch Break" },
+  { label: "06:30 PM", value: "18:30", desc: "Evening Peak" },
+  { label: "08:00 PM", value: "20:00", desc: "Prime Social" },
+  { label: "10:00 PM", value: "22:00", desc: "Late Night Focus" },
 ];
 
 const PLATFORM_OPTIONS = [
@@ -83,6 +85,7 @@ export function ScheduleStep({
   onBack,
   onSubmit,
   isSubmitting = false,
+  isEditing = false,
 }: ScheduleStepProps) {
   const defaultTitle = seriesContext?.nicheTitle
     ? `${seriesContext.nicheTitle} Viral Series`
@@ -99,9 +102,31 @@ export function ScheduleStep({
     initialData?.platforms || ["tiktok", "youtube", "instagram"]
   );
 
+  // Time Picker state (defaults to 18:30 / 6:30 PM)
   const [publishTime, setPublishTime] = useState<string>(
-    initialData?.publishTime || PUBLISH_TIME_OPTIONS[0]
+    initialData?.publishTime || "18:30"
   );
+
+  const [userTimeZone, setUserTimeZone] = useState<string>("");
+
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setUserTimeZone(tz);
+    } catch {
+      setUserTimeZone("Local Time");
+    }
+  }, []);
+
+  // Format 24h string (e.g. 18:30) to 12h readable string (e.g. 6:30 PM)
+  const formatTime12h = (time24: string) => {
+    if (!time24) return "6:30 PM";
+    const [hoursStr, minutesStr] = time24.split(":");
+    const hours = parseInt(hoursStr, 10);
+    const suffix = hours >= 12 ? "PM" : "AM";
+    const hours12 = hours % 12 || 12;
+    return `${hours12}:${minutesStr} ${suffix}`;
+  };
 
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms((prev) => {
@@ -281,24 +306,63 @@ export function ScheduleStep({
           </div>
         </div>
 
-        {/* Field D: Time to Publish Selection & Crucial Warning Note */}
-        <div className="space-y-2 pt-1">
-          <label className="block text-xs font-bold text-slate-200 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-purple-400" />
-            <span>Time to Publish</span>
-          </label>
+        {/* Field D: Time Picker Selection & Crucial Warning Note */}
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-purple-400" />
+              <span>Time to Publish</span>
+            </label>
 
-          <select
-            value={publishTime}
-            onChange={(e) => setPublishTime(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-purple-500 transition-colors"
-          >
-            {PUBLISH_TIME_OPTIONS.map((timeOpt) => (
-              <option key={timeOpt} value={timeOpt} className="bg-slate-900 text-white">
-                {timeOpt}
-              </option>
-            ))}
-          </select>
+            <span className="text-[11px] text-slate-400 flex items-center gap-1">
+              <Globe className="w-3 h-3 text-cyan-400" />
+              <span>Timezone: <strong className="text-slate-200">{userTimeZone || "Local"}</strong></span>
+            </span>
+          </div>
+
+          {/* Interactive Time Picker Card */}
+          <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <input
+                    type="time"
+                    required
+                    value={publishTime}
+                    onChange={(e) => setPublishTime(e.target.value)}
+                    className="px-4 py-2.5 rounded-xl bg-[#121526] border border-purple-500/40 text-white text-base font-mono font-bold focus:outline-none focus:border-purple-400 cursor-pointer [color-scheme:dark]"
+                  />
+                </div>
+
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-purple-300 font-mono">
+                    Daily @ {formatTime12h(publishTime)}
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">
+                    Automated daily publish time
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {TIME_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() => setPublishTime(preset.value)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono border transition-all cursor-pointer ${
+                      publishTime === preset.value
+                        ? "bg-purple-600 text-white border-purple-500 shadow-sm"
+                        : "bg-white/[0.04] text-slate-400 border-white/10 hover:border-white/20 hover:text-white"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* REQUIRED NOTE: "Video will generate 3-6 hours before video publish" */}
           <div className="flex items-start gap-2.5 p-3 rounded-xl bg-purple-950/30 border border-purple-500/20 text-purple-200">
@@ -365,7 +429,7 @@ export function ScheduleStep({
           <span>Back to Captions</span>
         </button>
 
-        {/* Finally show Schedule button */}
+        {/* Finally show Schedule / Save Changes button */}
         <button
           type="submit"
           disabled={isSubmitting || !seriesName.trim() || selectedPlatforms.length === 0}
@@ -374,12 +438,12 @@ export function ScheduleStep({
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin text-white" />
-              <span>Scheduling Series...</span>
+              <span>{isEditing ? "Saving Changes..." : "Scheduling Series..."}</span>
             </>
           ) : (
             <>
               <Zap className="w-4 h-4 text-cyan-200 fill-cyan-200" />
-              <span>Schedule Series</span>
+              <span>{isEditing ? "Save Series Changes" : "Schedule Series"}</span>
             </>
           )}
         </button>
