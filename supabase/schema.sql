@@ -74,10 +74,34 @@ CREATE TABLE IF NOT EXISTS public.channels (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 6. AI Generated Reels Table
+-- 6. Series Table (Multi-video series automation pipelines)
+CREATE TABLE IF NOT EXISTS public.series (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  niche TEXT NOT NULL,
+  voice TEXT,
+  language TEXT,
+  bg_music TEXT,
+  visual_style TEXT,
+  caption_style TEXT,
+  frequency TEXT DEFAULT 'Daily',
+  total_videos INT DEFAULT 30,
+  published_videos INT DEFAULT 0,
+  scheduled_videos INT DEFAULT 0,
+  status TEXT DEFAULT 'active',
+  channels TEXT[] DEFAULT ARRAY['youtube', 'instagram', 'tiktok'],
+  views INT DEFAULT 0,
+  rpm NUMERIC DEFAULT 0.0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 7. AI Generated Reels Table
 CREATE TABLE IF NOT EXISTS public.reels (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL,
+  series_id UUID REFERENCES public.series(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   niche TEXT NOT NULL,
   hook TEXT,
