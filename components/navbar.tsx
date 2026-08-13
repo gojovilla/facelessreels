@@ -2,23 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   Video,
-  Calendar,
-  Layers,
-  Zap,
   Menu,
   X,
   ArrowRight,
-  Play,
-  ShieldCheck,
   CheckCircle2,
+  LayoutDashboard,
 } from "lucide-react";
+import { useUser, useClerk, UserButton } from "@clerk/nextjs";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isSignedIn, isLoaded } = useUser();
+  const { openSignIn } = useClerk();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +28,16 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleDashboardClick = () => {
+    if (isSignedIn) {
+      router.push("/dashboard");
+    } else {
+      openSignIn({
+        fallbackRedirectUrl: "/dashboard",
+      });
+    }
+  };
 
   const navLinks = [
     { name: "Live Demo", href: "#live-demo" },
@@ -85,35 +96,62 @@ export function Navbar() {
             ))}
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action CTAs (Dashboard & Auth Buttons) */}
           <div className="hidden md:flex items-center gap-3">
-            <a
-              href="#pricing"
-              className="text-xs font-medium text-slate-300 hover:text-white px-3 py-2 transition-colors"
+            {/* Dashboard Button */}
+            <button
+              onClick={handleDashboardClick}
+              className="px-3.5 py-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer hover:border-purple-500/40"
             >
-              Sign In
-            </a>
-            <a
-              href="#live-demo"
-              className="relative inline-flex items-center justify-center p-[1px] overflow-hidden rounded-full font-medium transition-all duration-300 group hover:shadow-lg hover:shadow-purple-500/25"
-            >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-600 via-indigo-500 to-cyan-400 group-hover:from-purple-500 group-hover:to-cyan-300"></span>
-              <span className="relative px-4 py-2 text-xs font-semibold text-white bg-[#0f111e] rounded-full transition-all duration-200 group-hover:bg-opacity-0 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-                <span>Start Free</span>
-                <ArrowRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-0.5 transition-transform" />
-              </span>
-            </a>
+              <LayoutDashboard className="w-3.5 h-3.5 text-purple-400" />
+              <span>Dashboard</span>
+            </button>
+
+            {isLoaded && isSignedIn ? (
+              <div className="flex items-center gap-3">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8 ring-2 ring-purple-500/50",
+                    },
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => openSignIn({ fallbackRedirectUrl: "/dashboard" })}
+                  className="text-xs font-medium text-slate-300 hover:text-white px-3 py-2 transition-colors cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => openSignIn({ fallbackRedirectUrl: "/dashboard" })}
+                  className="relative inline-flex items-center justify-center p-[1px] overflow-hidden rounded-full font-medium transition-all duration-300 group hover:shadow-lg hover:shadow-purple-500/25 cursor-pointer"
+                >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-600 via-indigo-500 to-cyan-400 group-hover:from-purple-500 group-hover:to-cyan-300"></span>
+                  <span className="relative px-4 py-2 text-xs font-semibold text-white bg-[#0f111e] rounded-full transition-all duration-200 group-hover:bg-opacity-0 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>Start Free</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu toggle */}
           <div className="flex md:hidden items-center gap-2">
-            <a
-              href="#live-demo"
-              className="text-xs font-semibold bg-purple-600 text-white px-3 py-1.5 rounded-full"
+            <button
+              onClick={handleDashboardClick}
+              className="text-xs font-semibold bg-purple-600 text-white px-3 py-1.5 rounded-full flex items-center gap-1"
             >
-              Try Free
-            </a>
+              <LayoutDashboard className="w-3 h-3" />
+              <span>Dashboard</span>
+            </button>
+
+            {isLoaded && isSignedIn && <UserButton />}
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-slate-400 hover:text-white focus:outline-none"
@@ -144,15 +182,31 @@ export function Navbar() {
               </a>
             ))}
           </div>
+
           <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
-            <a
-              href="#live-demo"
-              onClick={() => setMobileMenuOpen(false)}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleDashboardClick();
+              }}
               className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-sm shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2"
             >
-              <Sparkles className="w-4 h-4" />
-              Generate First Reel Free
-            </a>
+              <LayoutDashboard className="w-4 h-4" />
+              Go to Dashboard
+            </button>
+
+            {isLoaded && !isSignedIn && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openSignIn({ fallbackRedirectUrl: "/dashboard" });
+                }}
+                className="w-full text-center py-2 rounded-xl bg-white/[0.05] border border-white/10 text-white font-medium text-xs"
+              >
+                Sign In
+              </button>
+            )}
+
             <div className="flex items-center justify-center gap-4 text-xs text-slate-400 py-1">
               <span className="flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> No Card Needed

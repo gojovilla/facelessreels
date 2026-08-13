@@ -14,6 +14,39 @@ export type ScheduleStatus = "pending" | "processing" | "published" | "failed";
 export interface Database {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string;
+          name: string | null;
+          email: string;
+          avatar_url: string | null;
+          tier: SubscriptionTier;
+          credits_remaining: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          name?: string | null;
+          email: string;
+          avatar_url?: string | null;
+          tier?: SubscriptionTier;
+          credits_remaining?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string | null;
+          email?: string;
+          avatar_url?: string | null;
+          tier?: SubscriptionTier;
+          credits_remaining?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -51,15 +84,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
+        Relationships: [];
       };
       channels: {
         Row: {
@@ -112,7 +137,7 @@ export interface Database {
             foreignKeyName: "channels_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "users";
             referencedColumns: ["id"];
           }
         ];
@@ -198,7 +223,7 @@ export interface Database {
             foreignKeyName: "reels_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "users";
             referencedColumns: ["id"];
           }
         ];
@@ -268,7 +293,7 @@ export interface Database {
             foreignKeyName: "schedules_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "users";
             referencedColumns: ["id"];
           }
         ];
