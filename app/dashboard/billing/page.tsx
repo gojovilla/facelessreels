@@ -75,33 +75,33 @@ export default function BillingPage() {
       {/* Billing Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <CreditCard className="w-6 h-6 text-purple-400" />
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <CreditCard className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             Subscription & Billing
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Manage your AI reel generation limits, active plan, and billing history
           </p>
         </div>
 
         {/* Monthly/Yearly Toggle */}
-        <div className="flex items-center gap-2 bg-[#0c0e18] p-1 rounded-full border border-white/10 text-xs">
+        <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0c0e18] p-1 rounded-full border border-slate-200 dark:border-white/10 text-xs">
           <button
             onClick={() => setBillingCycle("monthly")}
-            className={`px-3 py-1.5 rounded-full transition-all ${
+            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
               billingCycle === "monthly"
                 ? "bg-purple-600 text-white font-semibold shadow-sm"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             Monthly
           </button>
           <button
             onClick={() => setBillingCycle("yearly")}
-            className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
               billingCycle === "yearly"
                 ? "bg-purple-600 text-white font-semibold shadow-sm"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <span>Annual</span>
@@ -117,61 +117,61 @@ export default function BillingPage() {
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`glass-card rounded-3xl p-6 border transition-all flex flex-col justify-between space-y-6 relative overflow-hidden ${
+            className={`rounded-3xl p-6 border transition-all flex flex-col justify-between space-y-6 relative overflow-hidden shadow-sm hover:shadow-md dark:shadow-xl ${
               plan.popular
-                ? "border-purple-500/60 shadow-xl shadow-purple-950/40 bg-gradient-to-b from-purple-950/20 to-[#0e101d]"
-                : "border-white/10 bg-[#0c0e18]/80"
+                ? "border-purple-500/60 shadow-xl shadow-purple-950/20 bg-gradient-to-b from-purple-50 via-white to-white dark:from-purple-950/20 dark:to-[#0e101d]"
+                : "border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c0e18]/80"
             }`}
           >
             {plan.popular && (
-              <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[10px] font-extrabold uppercase tracking-wide">
+              <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[10px] font-extrabold uppercase tracking-wide shadow">
                 Most Popular
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                <p className="text-xs text-slate-400 mt-1">{plan.description}</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{plan.name}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{plan.description}</p>
               </div>
 
               <div className="flex items-baseline gap-1 pt-2">
-                <span className="text-3xl font-extrabold text-white">{plan.price}</span>
-                <span className="text-xs text-slate-400">{plan.period}</span>
+                <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{plan.price}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{plan.period}</span>
               </div>
 
-              <div className="space-y-2.5 pt-4 border-t border-white/10">
-                <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block mb-2">
+              <div className="space-y-2.5 pt-4 border-t border-slate-100 dark:border-white/10">
+                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider block mb-2">
                   What's included:
                 </span>
                 {plan.features.map((feat) => (
                   <div
                     key={feat}
-                    className="flex items-start gap-2 text-xs text-slate-300"
+                    className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                     <span>{feat}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/10">
+            <div className="pt-4 border-t border-slate-100 dark:border-white/10">
               <button
                 disabled={plan.current}
                 className={`w-full py-3 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 ${
                   plan.current
-                    ? "bg-white/[0.05] border border-white/10 text-slate-400 cursor-default"
+                    ? "bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 cursor-default"
                     : plan.popular
                     ? "bg-gradient-to-r from-purple-600 to-cyan-500 text-white shadow-lg shadow-purple-600/30 hover:opacity-95 cursor-pointer"
-                    : "bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/40 text-purple-200 cursor-pointer"
+                    : "bg-purple-600/10 hover:bg-purple-600/20 dark:bg-purple-600/20 dark:hover:bg-purple-600/40 border border-purple-500/40 text-purple-700 dark:text-purple-200 cursor-pointer"
                 }`}
               >
                 {plan.current ? (
                   <span>Active Free Plan</span>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-cyan-300" />
+                    <Sparkles className="w-4 h-4 text-cyan-200" />
                     <span>{plan.cta}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
@@ -183,18 +183,18 @@ export default function BillingPage() {
       </div>
 
       {/* Trust & Guarantee Banner */}
-      <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-sm">
         <div className="flex items-center gap-3">
-          <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+          <ShieldCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <div>
-            <h4 className="text-xs font-bold text-white">14-Day Money-Back Guarantee</h4>
-            <p className="text-[11px] text-slate-400">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">14-Day Money-Back Guarantee</h4>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Cancel anytime in 1 click. Zero questions asked.
             </p>
           </div>
         </div>
 
-        <div className="text-xs text-slate-400 flex items-center gap-4">
+        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-4">
           <span>🔒 256-Bit Encrypted Checkout</span>
           <span>•</span>
           <span>Powered by Stripe</span>

@@ -32,7 +32,7 @@ export const MainVideoReel: React.FC<MainVideoReelProps> = ({
       ? imageUrls
       : scenes && scenes.length > 0
       ? scenes.map((s) => s.imageUrl).filter(Boolean)
-      : ["/video-style/cinematic-realism.jpg"];
+      : ["/video-style/realism.jpg"];
 
   const imageCount = Math.max(1, activeImages.length);
 

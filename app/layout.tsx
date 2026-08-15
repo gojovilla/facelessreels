@@ -39,6 +39,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 export default function RootLayout({
   children,
 }: {
@@ -47,37 +49,27 @@ export default function RootLayout({
   return (
     <ClerkProvider
       appearance={{
-        ...dark,
         variables: {
           colorPrimary: "#8b5cf6",
-          colorBackground: "#0f111c",
           borderRadius: "0.75rem",
-        },
-        elements: {
-          card: "border border-white/10 shadow-2xl backdrop-blur-xl bg-[#0f111c]/90",
-          formButtonPrimary:
-            "bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-90 transition-opacity text-white font-semibold",
-          footerActionLink: "text-purple-400 hover:text-purple-300",
-          headerTitle: "text-white font-bold",
-          headerSubtitle: "text-slate-400",
-          socialButtonsBlockButton:
-            "bg-white/[0.04] border-white/10 hover:bg-white/[0.08] text-white",
-          socialButtonsBlockButtonText: "text-white font-medium",
-          formFieldLabel: "text-slate-300 text-xs",
-          formFieldInput:
-            "bg-black/50 border-white/10 text-white placeholder:text-slate-500 focus:border-purple-500",
-          dividerLine: "bg-white/10",
-          dividerText: "text-slate-500 text-xs",
         },
       }}
     >
       <html
         lang="en"
-        className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+        suppressHydrationWarning
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
-        <body className="min-h-full flex flex-col bg-[#090a0f] text-slate-100 selection:bg-purple-500/30 selection:text-purple-200">
-          <AuthSyncHandler />
-          {children}
+        <body className="min-h-full flex flex-col bg-slate-50 dark:bg-[#090a0f] text-slate-900 dark:text-slate-100 selection:bg-purple-500/30 selection:text-purple-200 transition-colors duration-150">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AuthSyncHandler />
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

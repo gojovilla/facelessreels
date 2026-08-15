@@ -67,12 +67,20 @@ function formatCardTime(dateStr?: string): string {
 
 function getStyleFallback(niche?: string): string {
   const n = (niche || "").toLowerCase();
-  if (n.includes("cyberpunk") || n.includes("tech")) return "/video-style/cyberpunk-neon.jpg";
-  if (n.includes("anime")) return "/video-style/dark-anime.jpg";
-  if (n.includes("comic")) return "/video-style/comic-book.jpg";
-  if (n.includes("oil") || n.includes("history") || n.includes("ancient") || n.includes("roman")) return "/video-style/gothic-oil.jpg";
-  if (n.includes("3d") || n.includes("pixar")) return "/video-style/pixar-3d.jpg";
-  return "/video-style/cinematic-realism.jpg";
+  if (n.includes("fantasy") || n.includes("gothic")) return "/video-style/dark_fantasy_new.jpg";
+  if (n.includes("creepy") || n.includes("horror") || n.includes("eerie")) return "/video-style/creepy_comic.jpg";
+  if (n.includes("comic") || n.includes("graphic")) return "/video-style/comic.jpg";
+  if (n.includes("ghibli")) return "/video-style/ghibli.jpg";
+  if (n.includes("anime") || n.includes("shonen")) return "/video-style/anime.jpg";
+  if (n.includes("disney") || n.includes("pixar") || n.includes("3d")) return "/video-style/disney.jpeg";
+  if (n.includes("lego")) return "/video-style/lego.jpg";
+  if (n.includes("cartoon") || n.includes("vector")) return "/video-style/modern_cartoon.png";
+  if (n.includes("mythology") || n.includes("gods") || n.includes("ancient") || n.includes("roman")) return "/video-style/mythology.jpg";
+  if (n.includes("oil") || n.includes("painting") || n.includes("renaissance")) return "/video-style/painting.png";
+  if (n.includes("pixel") || n.includes("game")) return "/video-style/pixel_art.jpg";
+  if (n.includes("polaroid") || n.includes("vintage") || n.includes("film")) return "/video-style/polaroid.jpg";
+  if (n.includes("scifi") || n.includes("space") || n.includes("fantastic") || n.includes("cyberpunk") || n.includes("tech")) return "/video-style/fantastic.png";
+  return "/video-style/realism.jpg";
 }
 
 function VideosContent() {
@@ -232,83 +240,83 @@ function VideosContent() {
   ).length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-5 max-w-7xl mx-auto pb-12">
       {/* Top Banner & Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <Link
               href="/dashboard"
-              className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="p-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-md shadow-purple-950/40">
-                <Video className="w-5 h-5" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-purple-600/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm">
+                <Video className="w-4 h-4" />
               </div>
-              <h1 className="text-2xl font-extrabold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                 AI Video Production Library
               </h1>
             </div>
 
             {processingCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#4f46e5]/20 border border-[#6366f1]/40 text-[#a5b4fc] text-xs font-semibold animate-pulse">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#4f46e5]/10 dark:bg-[#4f46e5]/20 border border-[#6366f1]/30 text-[#4f46e5] dark:text-[#a5b4fc] text-[11px] font-semibold animate-pulse">
+                <Loader2 className="w-3 h-3 animate-spin" />
                 <span>{processingCount} Processing</span>
               </span>
             )}
           </div>
 
-          <p className="text-xs text-slate-400 pl-11">
+          <p className="text-xs text-slate-500 dark:text-slate-400 pl-10">
             {seriesIdParam
               ? "Viewing generated AI video reels and scheduled production assets"
               : "Manage all generated faceless video reels, voiceover tracks, and production schedules"}
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => fetchVideos()}
-            className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Radio className={`w-3.5 h-3.5 ${isLivePolling ? "text-emerald-400 animate-pulse" : "text-slate-400"}`} />
-            <span>{isLivePolling ? "Live Syncing" : "Refresh"}</span>
+            <Radio className={`w-3 h-3 ${isLivePolling ? "text-emerald-500 dark:text-emerald-400 animate-pulse" : "text-slate-400"}`} />
+            <span>{isLivePolling ? "Syncing" : "Refresh"}</span>
           </button>
 
           <Link
             href="/dashboard/create"
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs shadow-md shadow-purple-600/25 hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs shadow-sm shadow-purple-600/20 hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
+            <Sparkles className="w-3 h-3 text-cyan-200" />
             <span>+ Create Series</span>
           </Link>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 bg-[#0c0e18] p-3 rounded-2xl border border-white/10 shadow-lg">
+      <div className="flex flex-col sm:flex-row items-center gap-2.5 bg-white dark:bg-[#0c0e18] p-2.5 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by video title, hook, or series name..."
-            className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+            placeholder="Search by title, hook, or series name..."
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 rounded-lg text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 transition-colors"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/10 w-full sm:w-auto">
+          <div className="flex items-center bg-slate-100 dark:bg-black/40 p-0.5 rounded-lg border border-slate-200 dark:border-white/10 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setFilterStatus("all")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                 filterStatus === "all"
-                  ? "bg-purple-600/30 text-purple-300 border border-purple-500/40 shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white dark:bg-purple-600/30 text-purple-700 dark:text-purple-300 shadow-sm border border-slate-200 dark:border-purple-500/40"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               All ({videos.length})
@@ -316,10 +324,10 @@ function VideosContent() {
             <button
               type="button"
               onClick={() => setFilterStatus("processing")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                 filterStatus === "processing"
-                  ? "bg-[#4f46e5]/30 text-indigo-300 border border-[#6366f1]/40 shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white dark:bg-[#4f46e5]/30 text-indigo-700 dark:text-indigo-300 shadow-sm border border-slate-200 dark:border-[#6366f1]/40"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Processing ({processingCount})
@@ -327,10 +335,10 @@ function VideosContent() {
             <button
               type="button"
               onClick={() => setFilterStatus("ready")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                 filterStatus === "ready"
-                  ? "bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white dark:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 shadow-sm border border-slate-200 dark:border-emerald-500/40"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Ready ({videos.length - processingCount})
@@ -341,41 +349,41 @@ function VideosContent() {
 
       {/* Loading Initial State */}
       {loading && (
-        <div className="p-16 rounded-3xl border border-white/10 bg-[#0d0f1a]/80 text-center space-y-3 shadow-xl">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto" />
-          <p className="text-sm font-semibold text-white">Loading video production library...</p>
-          <p className="text-xs text-slate-400">Fetching generated AI reels from Supabase database</p>
+        <div className="p-12 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-[#0d0f1a]/80 text-center space-y-2.5 shadow-sm">
+          <Loader2 className="w-7 h-7 text-purple-600 dark:text-purple-400 animate-spin mx-auto" />
+          <p className="text-xs font-semibold text-slate-900 dark:text-white">Loading video production library...</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">Fetching generated AI reels from database</p>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && filteredVideos.length === 0 && (
-        <div className="p-16 sm:p-20 rounded-3xl border border-white/10 bg-[#0d0f1a]/80 text-center space-y-6 shadow-xl">
-          <div className="w-20 h-20 rounded-3xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mx-auto shadow-inner">
-            <Film className="w-10 h-10" />
+        <div className="p-12 sm:p-16 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-[#0d0f1a]/80 text-center space-y-4 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto shadow-inner">
+            <Film className="w-7 h-7" />
           </div>
 
-          <div className="space-y-2 max-w-md mx-auto">
-            <h3 className="text-xl font-bold text-white">No Videos Found</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">No Videos Found</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {seriesIdParam
                 ? "No video reels have been generated for this series yet. Head over to the Series Hub and click 'Generate Now' on the series card to start the pipeline."
                 : "Your video library is currently empty. Click 'Generate Now' on any active series or create a new automated series."}
             </p>
           </div>
 
-          <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-2.5 pt-1">
             <Link
               href="/dashboard"
-              className="px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-300 text-xs font-semibold transition-all"
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all"
             >
               Back to Series Hub
             </Link>
             <Link
               href="/dashboard/create"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs shadow-xl shadow-purple-600/30 hover:scale-[1.02] transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 hover:opacity-95 transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4 text-cyan-200" />
+              <Plus className="w-3.5 h-3.5 text-cyan-200" />
               <span>+ Create New Series</span>
             </Link>
           </div>
@@ -383,10 +391,10 @@ function VideosContent() {
       )}
 
       {/* ========================================================================= */}
-      {/* VIDEO CARDS GRID (EXACTLY MATCHING USER'S SPECIFIED DESIGN) */}
+      {/* VIDEO CARDS GRID (COMPACT 4-COL ON DESKTOP) */}
       {/* ========================================================================= */}
       {!loading && filteredVideos.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredVideos.map((video) => {
             const isProcessing =
               video.status === "generating" ||
@@ -411,20 +419,20 @@ function VideosContent() {
               <div
                 key={video.id}
                 onClick={() => handleOpenPreview(video)}
-                className={`bg-[#0f1220] rounded-3xl p-4 border border-white/10 transition-all flex flex-col justify-between space-y-4 group shadow-xl hover:shadow-2xl hover:border-white/20 relative overflow-hidden ${
+                className={`bg-white dark:bg-[#0f1220] rounded-2xl p-3 border border-slate-200 dark:border-white/10 transition-all flex flex-col justify-between space-y-2.5 group shadow-sm hover:shadow-md dark:shadow-lg dark:hover:shadow-2xl relative overflow-hidden ${
                   !isProcessing ? "cursor-pointer hover:border-purple-500/40" : "cursor-default"
                 }`}
               >
                 {/* 1. TOP THUMBNAIL CONTAINER */}
-                <div className="relative aspect-[16/10] w-full rounded-2xl bg-[#0a0c14] border border-white/10 overflow-hidden flex flex-col justify-between">
+                <div className="relative aspect-[16/9] w-full rounded-xl bg-slate-100 dark:bg-[#0a0c14] border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col justify-between">
                   {/* Status Badge: Top Left */}
-                  <div className="absolute top-3.5 left-3.5 z-20">
+                  <div className="absolute top-2 left-2 z-20">
                     {isProcessing ? (
-                      <span className="px-3.5 py-1 rounded-full bg-[#4f46e5] text-white text-[11px] font-black tracking-wider uppercase shadow-lg shadow-indigo-950/50 flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-full bg-[#4f46e5] text-white text-[9px] font-black tracking-wider uppercase shadow flex items-center gap-1">
                         <span>PROCESSING</span>
                       </span>
                     ) : (
-                      <span className="px-3.5 py-1 rounded-full bg-[#10b981] text-white text-[11px] font-black tracking-wider uppercase shadow-lg shadow-emerald-950/50">
+                      <span className="px-2 py-0.5 rounded-full bg-[#10b981] text-white text-[9px] font-black tracking-wider uppercase shadow">
                         READY
                       </span>
                     )}
@@ -432,14 +440,11 @@ function VideosContent() {
 
                   {/* Processing State: Spinner + Generating Pill in Center */}
                   {isProcessing ? (
-                    <div className="absolute inset-0 bg-[#0d1020] flex flex-col items-center justify-center p-6 text-center space-y-3 z-10">
-                      {/* Circular Spinner Ring */}
+                    <div className="absolute inset-0 bg-slate-100 dark:bg-[#0d1020] flex flex-col items-center justify-center p-4 text-center space-y-2 z-10">
                       <div className="relative">
-                        <div className="w-12 h-12 rounded-full border-3 border-white/10 border-t-white/80 animate-spin" />
+                        <div className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-white/10 border-t-purple-600 dark:border-t-white/80 animate-spin" />
                       </div>
-
-                      {/* Translucent Generating Pill */}
-                      <div className="px-4 py-1 rounded-full bg-[#2a2e45]/80 backdrop-blur-md text-white/90 text-xs font-bold tracking-wide shadow-md">
+                      <div className="px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-[#2a2e45]/80 backdrop-blur-md text-slate-700 dark:text-white/90 text-[10px] font-bold tracking-wide">
                         Generating...
                       </div>
                     </div>
@@ -450,15 +455,15 @@ function VideosContent() {
                         src={thumbnailSrc}
                         alt={displayTitle}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-700 brightness-95 group-hover:brightness-100"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95 group-hover:brightness-100"
                         unoptimized
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
                       {/* Play Button Overlay on Hover */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <div className="w-12 h-12 rounded-full bg-purple-600/80 border border-purple-300 backdrop-blur-md flex items-center justify-center text-white shadow-xl shadow-purple-950">
-                          <Play className="w-5 h-5 fill-white ml-0.5" />
+                        <div className="w-9 h-9 rounded-full bg-purple-600/85 border border-purple-300 backdrop-blur-md flex items-center justify-center text-white shadow-lg">
+                          <Play className="w-4 h-4 fill-white ml-0.5" />
                         </div>
                       </div>
                     </>
@@ -466,35 +471,35 @@ function VideosContent() {
                 </div>
 
                 {/* 2. CARD CONTENT (TITLE, SERIES, DATE & TIME) */}
-                <div className="space-y-3 px-1">
+                <div className="space-y-2 px-0.5">
                   {/* Video Title */}
                   <h3
-                    className={`text-base font-bold leading-snug line-clamp-1 ${
+                    className={`text-xs sm:text-sm font-bold leading-tight line-clamp-1 ${
                       isProcessing
-                        ? "text-[#818cf8] font-extrabold"
-                        : "text-white group-hover:text-purple-200 transition-colors"
+                        ? "text-indigo-600 dark:text-[#818cf8] font-extrabold"
+                        : "text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-200 transition-colors"
                     }`}
                   >
                     {displayTitle}
                   </h3>
 
                   {/* Series Name with Film Icon */}
-                  <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
-                    <div className="w-4 h-4 rounded bg-purple-600/20 text-purple-400 flex items-center justify-center shrink-0">
-                      <Film className="w-2.5 h-2.5" />
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-semibold">
+                    <div className="w-3.5 h-3.5 rounded bg-purple-600/10 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                      <Film className="w-2 h-2" />
                     </div>
                     <span className="truncate">{seriesName}</span>
                   </div>
 
                   {/* Date & Time Footer Row */}
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-3 border-t border-white/5">
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-400 font-mono pt-1.5 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                      <Calendar className="w-3 h-3 text-slate-400" />
                       <span>{formatCardDate(video.created_at)}</span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <Clock className="w-3.5 h-3.5 text-slate-500" />
+                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                      <Clock className="w-3 h-3 text-slate-400" />
                       <span>{formatCardTime(video.created_at)}</span>
                     </div>
                   </div>
@@ -502,10 +507,10 @@ function VideosContent() {
 
                 {/* Optional Action Overlay / Delete */}
                 <div
-                  className="flex items-center justify-between pt-1 border-t border-white/5 text-xs text-slate-400"
+                  className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-white/5 text-[11px] text-slate-500 dark:text-slate-400"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     {video.audio_url && (
                       <a
                         href={video.audio_url}
@@ -513,10 +518,10 @@ function VideosContent() {
                         rel="noreferrer"
                         download
                         title="Download Voice Audio"
-                        className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-cyan-300 transition-all flex items-center gap-1"
+                        className="p-1 rounded bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-cyan-300 transition-all flex items-center gap-1"
                       >
-                        <Download className="w-3 h-3" />
-                        <span className="text-[10px] font-mono">Audio</span>
+                        <Download className="w-2.5 h-2.5" />
+                        <span className="text-[9px] font-mono">Audio</span>
                       </a>
                     )}
                   </div>
@@ -525,7 +530,7 @@ function VideosContent() {
                     type="button"
                     onClick={(e) => handleDeleteReel(video.id, e)}
                     title="Delete Reel"
-                    className="p-1.5 rounded-lg bg-white/[0.02] hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-all cursor-pointer"
+                    className="p-1 rounded bg-slate-100 dark:bg-white/[0.02] hover:bg-red-50 dark:hover:bg-red-500/20 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -541,15 +546,15 @@ function VideosContent() {
       {/* ========================================================================= */}
       {previewVideo && (
         <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6 animate-fade-in"
+          className="fixed inset-0 z-50 bg-black/70 dark:bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6 animate-fade-in"
           onClick={handleClosePreview}
         >
           <div
-            className="w-full max-w-4xl bg-[#0e111d] border border-white/15 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+            className="w-full max-w-4xl bg-white dark:bg-[#0e111d] border border-slate-200 dark:border-white/15 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* LEFT COLUMN: 9:16 PLAYER DISPLAY */}
-            <div className="w-full md:w-[340px] bg-black p-4 flex flex-col items-center justify-between relative border-b md:border-b-0 md:border-r border-white/10 shrink-0">
+            <div className="w-full md:w-[340px] bg-slate-950 p-4 flex flex-col items-center justify-between relative border-b md:border-b-0 md:border-r border-slate-800 dark:border-white/10 shrink-0">
               {/* Close Button on Mobile */}
               <button
                 onClick={handleClosePreview}
@@ -559,7 +564,7 @@ function VideosContent() {
               </button>
 
               {/* 9:16 Vertical Screen Frame */}
-              <div className="relative aspect-[9/16] w-full max-w-[260px] rounded-2xl overflow-hidden bg-[#121526] border border-white/15 shadow-2xl flex flex-col justify-between p-4 my-auto">
+              <div className="relative aspect-[9/16] w-full max-w-[250px] rounded-2xl overflow-hidden bg-[#121526] border border-white/15 shadow-2xl flex flex-col justify-between p-4 my-auto">
                 {previewVideo.video_url &&
                 (previewVideo.video_url.includes(".mp4") ||
                   (!previewVideo.video_url.includes(".mp3") &&
@@ -602,10 +607,10 @@ function VideosContent() {
                       </span>
                     </div>
 
-                    {/* Dynamic Hormozi Subtitle Simulation */}
+                    {/* Dynamic Subtitle Simulation */}
                     <div className="relative z-10 my-auto text-center px-2">
                       <div className="inline-block px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-amber-400/40 shadow-xl animate-pulse">
-                        <span className="text-amber-400 font-extrabold text-sm tracking-wide uppercase drop-shadow-md">
+                        <span className="text-amber-400 font-extrabold text-xs tracking-wide uppercase drop-shadow-md">
                           {previewVideo.hook?.slice(0, 32) || "VIRAL REEL HOOK"}
                         </span>
                       </div>
@@ -618,12 +623,12 @@ function VideosContent() {
                         <button
                           type="button"
                           onClick={togglePlayAudio}
-                          className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 hover:scale-105 text-white flex items-center justify-center shadow-lg shadow-purple-950 transition-all cursor-pointer"
+                          className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 hover:scale-105 text-white flex items-center justify-center shadow-lg shadow-purple-950 transition-all cursor-pointer"
                         >
                           {isPlayingAudio ? (
-                            <Pause className="w-5 h-5 fill-white" />
+                            <Pause className="w-4 h-4 fill-white" />
                           ) : (
-                            <Play className="w-5 h-5 fill-white ml-0.5" />
+                            <Play className="w-4 h-4 fill-white ml-0.5" />
                           )}
                         </button>
                       </div>
@@ -660,17 +665,17 @@ function VideosContent() {
             {/* RIGHT COLUMN: REEL ASSETS & DATA TABS */}
             <div className="flex-1 flex flex-col justify-between overflow-hidden">
               {/* Modal Top Header */}
-              <div className="p-6 border-b border-white/10 flex items-start justify-between gap-4">
+              <div className="p-5 border-b border-slate-200 dark:border-white/10 flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-purple-600/20 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-purple-600/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs font-semibold">
                       {previewVideo.series_title || previewVideo.series || "Automated Series"}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {formatCardDate(previewVideo.created_at)} • {formatCardTime(previewVideo.created_at)}
                     </span>
                   </div>
-                  <h2 className="text-lg font-bold text-white leading-snug">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
                     {previewVideo.title}
                   </h2>
                 </div>
@@ -678,21 +683,21 @@ function VideosContent() {
                 <button
                   type="button"
                   onClick={handleClosePreview}
-                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 text-slate-400 hover:text-white transition-all cursor-pointer hidden md:flex"
+                  className="p-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer hidden md:flex"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Navigation Tabs */}
-              <div className="flex items-center gap-2 px-6 pt-4 border-b border-white/10 text-xs font-semibold">
+              <div className="flex items-center gap-2 px-5 pt-3 border-b border-slate-200 dark:border-white/10 text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setActiveTab("preview")}
-                  className={`pb-3 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === "preview"
-                      ? "border-purple-400 text-purple-300 font-bold"
-                      : "border-transparent text-slate-400 hover:text-white"
+                      ? "border-purple-600 dark:border-purple-400 text-purple-700 dark:text-purple-300 font-bold"
+                      : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   <Film className="w-3.5 h-3.5" />
@@ -702,69 +707,69 @@ function VideosContent() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("script")}
-                  className={`pb-3 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === "script"
-                      ? "border-purple-400 text-purple-300 font-bold"
-                      : "border-transparent text-slate-400 hover:text-white"
+                      ? "border-purple-600 dark:border-purple-400 text-purple-700 dark:text-purple-300 font-bold"
+                      : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Voiceover Script</span>
+                  <span>Script</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab("scenes")}
-                  className={`pb-3 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === "scenes"
-                      ? "border-purple-400 text-purple-300 font-bold"
-                      : "border-transparent text-slate-400 hover:text-white"
+                      ? "border-purple-600 dark:border-purple-400 text-purple-700 dark:text-purple-300 font-bold"
+                      : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
-                  <span>Scene Prompts ({previewVideo.scenes?.length || previewVideo.image_prompts?.length || 5})</span>
+                  <span>Scenes ({previewVideo.scenes?.length || previewVideo.image_prompts?.length || 5})</span>
                 </button>
               </div>
 
               {/* Tab Content Body */}
-              <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div className="p-5 overflow-y-auto flex-1 space-y-3.5">
                 {/* TAB 1: OVERVIEW */}
                 {activeTab === "preview" && (
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
                     {/* Metadata Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-                        <span className="text-[10px] text-slate-500 uppercase font-mono">Neural Voice</span>
-                        <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                          <Mic className="w-3.5 h-3.5 text-cyan-400" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 space-y-0.5">
+                        <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-mono">Neural Voice</span>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Mic className="w-3 h-3 text-purple-600 dark:text-cyan-400" />
                           <span>{previewVideo.voice_name || "Deepgram Neural"}</span>
                         </p>
                       </div>
 
-                      <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-                        <span className="text-[10px] text-slate-500 uppercase font-mono">Caption Preset</span>
-                        <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 space-y-0.5">
+                        <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-mono">Caption Preset</span>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Sparkles className="w-3 h-3 text-amber-500 dark:text-amber-400" />
                           <span>{previewVideo.caption_style || "Hormozi Pop"}</span>
                         </p>
                       </div>
 
-                      <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-                        <span className="text-[10px] text-slate-500 uppercase font-mono">Estimated Duration</span>
-                        <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-purple-400" />
-                          <span>{previewVideo.duration_seconds || 45} Seconds</span>
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 space-y-0.5">
+                        <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-mono">Duration</span>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Clock className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                          <span>{previewVideo.duration_seconds || 45}s</span>
                         </p>
                       </div>
                     </div>
 
                     {/* Hook Callout Box */}
                     {previewVideo.hook && (
-                      <div className="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/20 space-y-1.5">
-                        <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wide flex items-center gap-1">
-                          <Zap className="w-3 h-3 fill-purple-400" /> 3-Second Viral Opening Hook
+                      <div className="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-500/20 space-y-1">
+                        <span className="text-[9px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1">
+                          <Zap className="w-3 h-3 fill-purple-600 dark:fill-purple-400" /> 3-Second Opening Hook
                         </span>
-                        <p className="text-xs text-slate-200 font-semibold leading-relaxed">
+                        <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
                           &ldquo;{previewVideo.hook}&rdquo;
                         </p>
                       </div>
@@ -775,20 +780,20 @@ function VideosContent() {
                     (previewVideo.video_url.includes(".mp4") ||
                       (!previewVideo.video_url.includes(".mp3") &&
                         previewVideo.video_url.startsWith("http"))) ? (
-                      <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 to-cyan-950/40 border border-purple-500/30 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-300 flex items-center justify-center">
-                            <Film className="w-5 h-5 text-purple-400" />
+                      <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-gradient-to-r dark:from-purple-950/40 dark:to-cyan-950/40 border border-slate-200 dark:border-purple-500/30 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-purple-600/15 dark:bg-purple-600/30 border border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+                            <Film className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                              <span>Rendered Remotion Reel</span>
-                              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
-                                1080x1920 MP4
+                            <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <span>Rendered MP4 Video</span>
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-mono">
+                                1080x1920
                               </span>
                             </p>
-                            <p className="text-[10px] text-slate-400">
-                              Synced Captions + Dynamic Ken-Burns Animations
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                              Synced Captions + Neural Voice
                             </p>
                           </div>
                         </div>
@@ -798,28 +803,28 @@ function VideosContent() {
                           target="_blank"
                           rel="noreferrer"
                           download
-                          className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow-lg shadow-purple-950 transition-all cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow transition-all cursor-pointer"
                         >
-                          <Download className="w-3.5 h-3.5 text-white" />
-                          <span>Download MP4</span>
+                          <Download className="w-3 h-3 text-white" />
+                          <span>Download</span>
                         </a>
                       </div>
                     ) : null}
 
                     {/* Audio Player Controls Box */}
                     {previewVideo.audio_url && (
-                      <div className="p-4 rounded-2xl bg-[#121526] border border-white/10 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
+                      <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#121526] border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
                           <button
                             type="button"
                             onClick={togglePlayAudio}
-                            className="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
+                            className="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shadow transition-all cursor-pointer"
                           >
-                            {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                            {isPlayingAudio ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
                           </button>
                           <div>
-                            <p className="text-xs font-bold text-white">Synthesized Voiceover Track</p>
-                            <p className="text-[10px] text-slate-400">High fidelity neural narration (MP3)</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">Synthesized Voiceover</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Neural narration audio track (MP3)</p>
                           </div>
                         </div>
 
@@ -828,9 +833,9 @@ function VideosContent() {
                           target="_blank"
                           rel="noreferrer"
                           download
-                          className="px-3 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-all"
+                          className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] border border-slate-300 dark:border-white/10 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1 transition-all"
                         >
-                          <Download className="w-3.5 h-3.5 text-cyan-400" />
+                          <Download className="w-3 h-3 text-purple-600 dark:text-cyan-400" />
                           <span>Download MP3</span>
                         </a>
                       </div>
@@ -840,20 +845,20 @@ function VideosContent() {
 
                 {/* TAB 2: FULL SCRIPT */}
                 {activeTab === "script" && (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400">Complete AI Generated Spoken Narration</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Complete AI Generated Spoken Narration</span>
                       <button
                         type="button"
                         onClick={() => handleCopyScript(previewVideo.script)}
-                        className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 transition-all cursor-pointer"
                       >
-                        {copiedScript ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedScript ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
                         <span>{copiedScript ? "Copied!" : "Copy Script"}</span>
                       </button>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-black/40 border border-white/5 text-xs text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">
+                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">
                       {previewVideo.script || "Script is being rendered..."}
                     </div>
                   </div>
@@ -861,7 +866,7 @@ function VideosContent() {
 
                 {/* TAB 3: SCENE PROMPTS & VISUALS */}
                 {activeTab === "scenes" && (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {(previewVideo.scenes && previewVideo.scenes.length > 0
                       ? previewVideo.scenes
                       : (previewVideo.image_prompts || []).map((prompt, idx) => ({
@@ -872,9 +877,9 @@ function VideosContent() {
                     ).map((scene: any, idx: number) => (
                       <div
                         key={idx}
-                        className="p-3.5 rounded-2xl bg-black/40 border border-white/5 flex items-start gap-3.5 hover:border-white/15 transition-all"
+                        className="p-3 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 flex items-start gap-3 hover:border-slate-300 dark:hover:border-white/15 transition-all"
                       >
-                        <div className="relative w-16 h-24 rounded-xl overflow-hidden bg-slate-900 border border-white/10 shrink-0">
+                        <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-white/10 shrink-0">
                           <Image
                             src={scene.imageUrl || previewVideo.thumbnail_url || getStyleFallback(previewVideo.niche)}
                             alt={`Scene ${scene.sceneNumber || idx + 1}`}
@@ -883,11 +888,11 @@ function VideosContent() {
                             unoptimized
                           />
                         </div>
-                        <div className="space-y-1 flex-1">
-                          <span className="text-[10px] font-bold text-purple-400 uppercase font-mono">
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase font-mono">
                             Scene #{scene.sceneNumber || idx + 1}
                           </span>
-                          <p className="text-xs text-slate-300 leading-snug">
+                          <p className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
                             {scene.imagePrompt || "9:16 Vertical Portrait Composition"}
                           </p>
                         </div>
@@ -898,16 +903,16 @@ function VideosContent() {
               </div>
 
               {/* Modal Footer Bar */}
-              <div className="p-4 px-6 border-t border-white/10 bg-black/40 flex items-center justify-between gap-3">
-                <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div className="p-3.5 px-5 border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/40 flex items-center justify-between gap-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>Production Assets Stored in Supabase</span>
                 </span>
 
                 <button
                   type="button"
                   onClick={handleClosePreview}
-                  className="px-5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs font-semibold transition-all cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-slate-200 dark:bg-white/[0.08] hover:bg-slate-300 dark:hover:bg-white/[0.12] text-slate-800 dark:text-white text-xs font-semibold transition-all cursor-pointer"
                 >
                   Close Preview
                 </button>

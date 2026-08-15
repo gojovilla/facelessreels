@@ -447,16 +447,69 @@ async function generateDeepgramCaptions(
   throw new Error("DEEPGRAM_API_KEY is missing in environment variables.");
 }
 
+// Helper: Map visual style ID or Name to prompt modifier
+function getStylePromptModifier(styleIdOrName?: string | null): string {
+  const s = (styleIdOrName || "").toLowerCase();
+  if (s.includes("fantasy") || s.includes("gothic")) {
+    return "dark fantasy epic aesthetic, Elden Ring and Dark Souls inspired, dramatic moody rim lighting, foggy medieval ruins, glowing mystical runes, highly detailed concept art";
+  }
+  if (s.includes("creepy") || s.includes("horror") || s.includes("eerie")) {
+    return "eerie noir horror comic style, Junji Ito inspired, gritty scratchy ink crosshatching, deep black shadows, psychological dread, high contrast black and white";
+  }
+  if (s.includes("comic") || s.includes("graphic")) {
+    return "classic vintage graphic novel illustration, bold ink linework, halftone shading patterns, DC Marvel vintage comic aesthetic, high contrast dramatic lighting";
+  }
+  if (s.includes("ghibli")) {
+    return "Studio Ghibli Hayao Miyazaki anime style, hand-painted lush watercolor background, soft fluffy clouds, nostalgic whimsical lighting, vibrant green and blue palette";
+  }
+  if (s.includes("anime") || s.includes("shonen")) {
+    return "vibrant Japanese anime aesthetic, ufotable studio quality, dynamic action pose, sharp cel shading, glowing energy particles, cinematic anime masterpiece";
+  }
+  if (s.includes("disney") || s.includes("pixar") || s.includes("3d")) {
+    return "Pixar Disney 3D animation style, soft subsurface scattering, expressive charming lighting, warm vibrant colors, highly detailed Unreal Engine 5 3D render";
+  }
+  if (s.includes("lego")) {
+    return "Lego movie style 3D render, glossy plastic brick textures, toy minifigure world, macro tilt-shift photography, ray-traced reflections";
+  }
+  if (s.includes("cartoon") || s.includes("vector")) {
+    return "modern 2D vector animation style, flat vector illustration, clean lines, bold saturated color palette, infographic storytelling aesthetic";
+  }
+  if (s.includes("mythology") || s.includes("gods") || s.includes("ancient")) {
+    return "epic ancient mythology aesthetic, colossal gods and deities, golden divine rays, marble classical architecture, dramatic stormy sky, cinematic masterpiece";
+  }
+  if (s.includes("oil") || s.includes("painting") || s.includes("renaissance")) {
+    return "classical Renaissance oil painting, Rembrandt chiaroscuro lighting, rich canvas impasto texture, dramatic golden glow, museum masterpiece";
+  }
+  if (s.includes("pixel") || s.includes("game")) {
+    return "detailed 16-bit pixel art style, isometric view, retro arcade video game aesthetic, vibrant neon palette, crisp pixel dithering";
+  }
+  if (s.includes("polaroid") || s.includes("vintage") || s.includes("film")) {
+    return "vintage 1990s polaroid snapshot, authentic 35mm disposable camera look, subtle light leaks, warm retro color grading, grainy analog film";
+  }
+  if (s.includes("fantastic") || s.includes("scifi") || s.includes("space") || s.includes("cyberpunk")) {
+    return "surreal sci-fi cosmic aesthetic, glowing interstellar nebulae, bioluminescent alien planet, futuristic holographic architecture, 8k cinematic masterpiece";
+  }
+  return "hyper-realistic cinematic movie still, 8k resolution, volumetric lighting, photorealistic, 35mm film grain, masterclass cinematography, highly detailed";
+}
+
 // Scene Image Generator (Using Gemini AI API & Neural Image Synthesis)
 async function generateSceneImage(
   prompt: string,
   sceneIndex: number,
-  seriesId: string
+  seriesId: string,
+  styleModifier?: string
 ): Promise<{ imageUrl: string; storagePath?: string; prompt: string }> {
   const filename = `scene-${sceneIndex}-${Date.now()}.jpg`;
   const localDir = path.join(process.cwd(), "public", "generated-images");
   await ensureDirExists(localDir);
   const localPath = path.join(localDir, filename);
+
+  const finalStyle = styleModifier && styleModifier.trim().length > 0
+    ? styleModifier
+    : "hyper-realistic cinematic movie still, 8k resolution, volumetric lighting, photorealistic, 35mm film grain";
+  const enrichedPrompt = prompt.includes(finalStyle.slice(0, 20))
+    ? prompt
+    : `${prompt}, ${finalStyle}`;
 
   let buffer: Buffer | null = null;
 
@@ -474,7 +527,7 @@ async function generateSceneImage(
       try {
         const response = await gemini.models.generateContent({
           model,
-          contents: `Generate a photorealistic vertical 9:16 portrait image for video scene: ${prompt}. Cinematic lighting, 8k resolution, ultra detailed.`,
+          contents: `Generate a vertical 9:16 portrait image for video scene: ${enrichedPrompt}. 9:16 vertical aspect ratio, ultra detailed.`,
         });
 
         const parts = response.candidates?.[0]?.content?.parts || [];
@@ -496,7 +549,7 @@ async function generateSceneImage(
     try {
       const seed = Math.floor(Math.random() * 1000000);
       const encodedPrompt = encodeURIComponent(
-        `${prompt}, 9:16 vertical portrait, cinematic lighting, 8k resolution, ultra detailed atmosphere`
+        `${enrichedPrompt}, 9:16 vertical portrait aspect ratio`
       );
       const aiSynthesisUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${seed}`;
 
@@ -525,7 +578,7 @@ async function generateSceneImage(
   return {
     imageUrl: supabaseResult.publicUrl,
     storagePath: supabaseResult.storagePath,
-    prompt,
+    prompt: enrichedPrompt,
   };
 }
 
@@ -602,9 +655,11 @@ export const generateVideoReel = inngest.createFunction(
         ? `Specific Focus/Story: ${seriesData.custom_prompt}`
         : "";
       const visualStyle = seriesData.visual_style || "Cinematic Realism";
-      const styleModifier = seriesData.custom_style_modifier
-        ? `Style modifier: ${seriesData.custom_style_modifier}`
-        : "";
+      const baseStyleMod = getStylePromptModifier(seriesData.visual_style_id || visualStyle);
+      const customStyleMod = seriesData.custom_style_modifier || "";
+      const styleModifier = customStyleMod
+        ? `${baseStyleMod}, ${customStyleMod}`
+        : baseStyleMod;
       const language = seriesData.language || "English";
 
       // Fetch previously generated reels for this series to guarantee unique topics per episode
@@ -627,7 +682,7 @@ Your task is to write a high-retention, engaging video script and matching visua
 - **Previous Episodes in this series (DO NOT REPEAT THESE TOPICS/STORIES)**: ${JSON.stringify(previousTitles)}
 - **Duration Target**: ${durationOpt} (${wordTarget})
 - **Spoken Language**: ${language}
-- **Visual Art Style**: "${visualStyle}" ${styleModifier}
+- **Visual Art Style**: "${visualStyle}" (Directives: ${styleModifier})
 
 ### Critical Directives for Voiceover Script:
 1. **100% Unique Story/Concept**: Create a fresh, captivating, and distinct story or concept for Episode #${episodeNum}.
@@ -806,12 +861,20 @@ Return ONLY a valid JSON object matching this schema:
       const processedScenes: GeneratedScene[] = [];
       const imageUrls: string[] = [];
 
+      const visualStyleName = seriesData.visual_style || "Cinematic Realism";
+      const baseStyleMod = getStylePromptModifier(seriesData.visual_style_id || visualStyleName);
+      const customStyleMod = seriesData.custom_style_modifier || "";
+      const combinedStyleModifier = customStyleMod
+        ? `${baseStyleMod}, ${customStyleMod}`
+        : baseStyleMod;
+
       for (let i = 0; i < scenesToProcess.length; i++) {
         const scene = scenesToProcess[i];
         const result = await generateSceneImage(
           scene.imagePrompt,
           scene.sceneNumber || i + 1,
-          seriesData.id
+          seriesData.id,
+          combinedStyleModifier
         );
 
         processedScenes.push({

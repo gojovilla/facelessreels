@@ -59,18 +59,18 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
   return (
     <div className="space-y-6">
       {/* 1. Header & Scroll Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-[#0d0f1a]/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0f1a]/80 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Palette className="w-4 h-4 text-purple-400" />
-            <h3 className="text-sm font-bold text-white">
+            <Palette className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
               Visual Art Direction & Style
             </h3>
-            <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono text-[10px] font-semibold">
+            <span className="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 font-mono text-[10px] font-semibold">
               9:16 Vertical Ratio
             </span>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Select a signature visual look for all scenes in your short video series.
           </p>
         </div>
@@ -81,7 +81,7 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
             type="button"
             onClick={() => scroll("left")}
             aria-label="Scroll left"
-            className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
+            className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -89,7 +89,7 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
             type="button"
             onClick={() => scroll("right")}
             aria-label="Scroll right"
-            className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
+            className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -99,11 +99,11 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
       {/* 2. Horizontal Scroll List with 9:16 Vertical Ratio Cards */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-purple-400" />
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Available Visual Styles ({VideoStyles.length})</span>
           </label>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
             Scroll horizontally • Tap to select style
           </span>
         </div>
@@ -121,8 +121,8 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
                 onClick={() => setSelectedStyleId(style.id)}
                 className={`w-[220px] sm:w-[235px] aspect-[9/16] shrink-0 rounded-2xl overflow-hidden relative group cursor-pointer transition-all duration-300 snap-start flex flex-col justify-between ${
                   isSelected
-                    ? "ring-4 ring-purple-500/50 border-2 border-purple-400 shadow-2xl shadow-purple-950 scale-[1.02]"
-                    : "border border-white/10 hover:border-white/30 hover:scale-[1.01]"
+                    ? "ring-4 ring-purple-500/50 border-2 border-purple-500 shadow-2xl shadow-purple-950 scale-[1.02]"
+                    : "border border-slate-300 dark:border-white/10 hover:border-purple-400 dark:hover:border-white/30 hover:scale-[1.01]"
                 }`}
               >
                 {/* Full 9:16 Image */}
@@ -184,21 +184,21 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
       </div>
 
       {/* 3. Selected Style Details & Prompt Customizer */}
-      <div className="p-4 rounded-2xl border border-white/10 bg-[#0d0f1a]/80 space-y-3">
+      <div className="p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0f1a]/80 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <h4 className="text-xs font-bold text-white">
-              Selected Style: <span className="text-purple-300">{selectedStyle.name}</span>
+            <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+              Selected Style: <span className="text-purple-700 dark:text-purple-300">{selectedStyle.name}</span>
             </h4>
           </div>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
             Recommended for: {selectedStyle.recommendedNiches}
           </span>
         </div>
 
         <div>
-          <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Optional Art Directives / Camera Details
           </label>
           <input
@@ -206,26 +206,26 @@ export function StyleStep({ initialData, onBack, onNext }: StyleStepProps) {
             value={customModifier}
             onChange={(e) => setCustomModifier(e.target.value)}
             placeholder="e.g. golden hour rim lighting, foggy atmosphere, anamorphic lens flares..."
-            className="w-full px-4 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-purple-500 transition-colors"
           />
         </div>
       </div>
 
       {/* 4. Bottom Navigation Buttons */}
-      <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+      <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Background Music</span>
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-xs text-slate-400 text-right">
+          <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 text-right">
             Active Style:{" "}
-            <strong className="text-purple-300 font-semibold">
+            <strong className="text-purple-700 dark:text-purple-300 font-semibold">
               {selectedStyle.name}
             </strong>
           </div>

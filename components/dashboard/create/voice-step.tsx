@@ -171,11 +171,11 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
       {/* 1. Language Selection Bar */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-white tracking-wide flex items-center gap-1.5">
-            <Globe className="w-3.5 h-3.5 text-purple-400" />
+          <label className="text-xs font-bold text-slate-900 dark:text-white tracking-wide flex items-center gap-1.5">
+            <Globe className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Select Video Language</span>
           </label>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
             Powered by Deepgram & FonadaLab
           </span>
         </div>
@@ -190,19 +190,19 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                 key={lang.modelLangCode}
                 type="button"
                 onClick={() => handleLanguageChange(lang)}
-                className={`p-3 rounded-2xl border transition-all text-left flex flex-col justify-between space-y-1.5 cursor-pointer ${
+                className={`p-3 rounded-2xl border transition-all text-left flex flex-col justify-between space-y-1.5 cursor-pointer shadow-sm ${
                   isSelected
-                    ? "bg-purple-950/30 border-2 border-purple-500 shadow-md shadow-purple-950/40"
-                    : "bg-[#0d0f1a]/80 border border-white/10 hover:border-white/20 hover:bg-white/[0.03]"
+                    ? "bg-purple-50 dark:bg-purple-950/30 border-2 border-purple-600 dark:border-purple-500 shadow-md"
+                    : "bg-white dark:bg-[#0d0f1a]/80 border border-slate-200 dark:border-white/10 hover:border-purple-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-white/[0.03]"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-base">{lang.countryFlag}</span>
                   <span
-                    className={`text-[9px] font-mono uppercase px-1 py-0.2 rounded font-semibold ${
+                    className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-semibold ${
                       lang.modelName === "deepgram"
-                        ? "bg-purple-500/20 text-purple-300"
-                        : "bg-cyan-500/20 text-cyan-300"
+                        ? "bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300"
+                        : "bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300"
                     }`}
                   >
                     {lang.modelName}
@@ -212,12 +212,12 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                 <div>
                   <div
                     className={`text-xs font-bold transition-colors ${
-                      isSelected ? "text-white" : "text-slate-300"
+                      isSelected ? "text-purple-900 dark:text-white" : "text-slate-800 dark:text-slate-300"
                     }`}
                   >
                     {lang.language}
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                     {lang.modelLangCode}
                   </span>
                 </div>
@@ -230,13 +230,13 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
       {/* 2. Neural Voice List Container */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-white tracking-wide flex items-center gap-1.5">
-            <Volume2 className="w-3.5 h-3.5 text-purple-400" />
+          <label className="text-xs font-bold text-slate-900 dark:text-white tracking-wide flex items-center gap-1.5">
+            <Volume2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>
               Available {selectedLanguage.language} Neural Voices ({availableVoices.length})
             </span>
           </label>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
             Click card to select • Press play to audition voice
           </span>
         </div>
@@ -252,10 +252,10 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                 <div
                   key={voice.modelName}
                   onClick={() => setSelectedVoice(voice)}
-                  className={`p-4 rounded-2xl transition-all cursor-pointer flex flex-col justify-between space-y-3 bg-[#0d0f1a]/80 ${
+                  className={`p-4 rounded-2xl transition-all cursor-pointer flex flex-col justify-between space-y-3 bg-white dark:bg-[#0d0f1a]/80 shadow-sm ${
                     isSelected
-                      ? "border-2 border-purple-500 shadow-lg shadow-purple-950/40 bg-purple-950/20"
-                      : "border border-white/10 hover:border-white/20 hover:bg-white/[0.03]"
+                      ? "border-2 border-purple-600 dark:border-purple-500 shadow-md bg-purple-50/60 dark:bg-purple-950/20"
+                      : "border border-slate-200 dark:border-white/10 hover:border-purple-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-white/[0.03]"
                   }`}
                 >
                   {/* Top Row: Avatar/Gender Icon + Model Details + Checkmark */}
@@ -265,8 +265,8 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
                           voice.gender === "male"
-                            ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                            : "bg-pink-500/10 border-pink-500/20 text-pink-400"
+                            ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
+                            : "bg-pink-500/10 border-pink-500/20 text-pink-600 dark:text-pink-400"
                         }`}
                       >
                         <User className="w-5 h-5" />
@@ -276,24 +276,24 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                         <div className="flex items-center gap-2">
                           <h4
                             className={`text-xs sm:text-sm font-bold transition-colors ${
-                              isSelected ? "text-white" : "text-slate-200"
+                              isSelected ? "text-purple-900 dark:text-white" : "text-slate-900 dark:text-slate-200"
                             }`}
                           >
                             {voice.displayName}
                           </h4>
                           <span
-                            className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-semibold capitalize ${
+                            className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-semibold capitalize ${
                               voice.gender === "male"
-                                ? "bg-blue-500/20 text-blue-300"
-                                : "bg-pink-500/20 text-pink-300"
+                                ? "bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
+                                : "bg-pink-500/10 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300"
                             }`}
                           >
                             {voice.gender}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-[10.5px] text-slate-400 mt-0.5">
-                          <span className="font-mono text-purple-300">
+                        <div className="flex items-center gap-2 text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          <span className="font-mono text-purple-700 dark:text-purple-300 font-semibold">
                             {voice.modelName}
                           </span>
                           <span>•</span>
@@ -306,8 +306,8 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                     <div
                       className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
                         isSelected
-                          ? "border-purple-500 bg-purple-600 text-white shadow-sm"
-                          : "border-white/20 bg-transparent"
+                          ? "border-purple-600 bg-purple-600 text-white shadow-sm"
+                          : "border-slate-300 dark:border-white/20 bg-transparent"
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -316,20 +316,20 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
 
                   {/* Sample Voice Quote */}
                   {voice.sampleText && (
-                    <p className="text-[11px] text-slate-400 italic line-clamp-2 leading-relaxed bg-black/20 p-2 rounded-xl border border-white/5">
-                      "{voice.sampleText}"
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 italic line-clamp-2 leading-relaxed bg-slate-100 dark:bg-black/30 p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
+                      &ldquo;{voice.sampleText}&rdquo;
                     </p>
                   )}
 
                   {/* Bottom Row: Preview Button & Active Sound Wave Indicator */}
-                  <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
                     <button
                       type="button"
                       onClick={(e) => handlePlayPreview(voice, e)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                         isPlaying
                           ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                          : "bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-200"
+                          : "bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200"
                       }`}
                     >
                       {isPlaying ? (
@@ -339,14 +339,14 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
                         </>
                       ) : (
                         <>
-                          <Play className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />
+                          <Play className="w-3.5 h-3.5 fill-purple-600 dark:fill-purple-400 text-purple-600 dark:text-purple-400" />
                           <span>Play Audio Preview</span>
                         </>
                       )}
                     </button>
 
                     {isPlaying && (
-                      <div className="flex items-center gap-1.5 text-purple-400 animate-pulse text-xs font-mono">
+                      <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 animate-pulse text-xs font-mono">
                         <AudioWaveform className="w-4 h-4 animate-bounce" />
                         <span className="text-[10px]">
                           Playing {voice.gender.toUpperCase()} Audio...
@@ -362,23 +362,23 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
       </div>
 
       {/* Bottom Navigation Buttons */}
-      <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+      <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
         <button
           type="button"
           onClick={() => {
             stopAudio();
             onBack();
           }}
-          className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Niche</span>
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-xs text-slate-400 text-right">
+          <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 text-right">
             Selected:{" "}
-            <strong className="text-purple-300">
+            <strong className="text-purple-700 dark:text-purple-300">
               {selectedVoice.displayName} ({selectedLanguage.language})
             </strong>
           </div>
@@ -388,7 +388,7 @@ export function VoiceStep({ initialData, onBack, onNext }: VoiceStepProps) {
             onClick={handleContinue}
             className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs shadow-md shadow-purple-600/25 hover:shadow-purple-600/40 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
           >
-            <span>Continue to Visual Style</span>
+            <span>Continue to Music</span>
             <ArrowRight className="w-3.5 h-3.5 text-cyan-200" />
           </button>
         </div>

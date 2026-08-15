@@ -74,18 +74,18 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
   return (
     <div className="space-y-6">
       {/* 1. Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-[#0d0f1a]/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0f1a]/80 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Subtitles className="w-4 h-4 text-purple-400" />
-            <h3 className="text-sm font-bold text-white">
+            <Subtitles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
               Animated Captions & Subtitles
             </h3>
-            <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono text-[10px] font-semibold">
+            <span className="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 font-mono text-[10px] font-semibold">
               Live Interactive Previews
             </span>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Choose an eye-catching animated subtitle theme. Captions will render word-by-word in Remotion video export.
           </p>
         </div>
@@ -94,16 +94,16 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
         <button
           type="button"
           onClick={() => setIsAnimationRunning(!isAnimationRunning)}
-          className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
         >
           {isAnimationRunning ? (
             <>
-              <Pause className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />
+              <Pause className="w-3.5 h-3.5 fill-purple-600 dark:fill-purple-400 text-purple-600 dark:text-purple-400" />
               <span>Pause Animation</span>
             </>
           ) : (
             <>
-              <Play className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />
+              <Play className="w-3.5 h-3.5 fill-purple-600 dark:fill-purple-400 text-purple-600 dark:text-purple-400" />
               <span>Resume Animation</span>
             </>
           )}
@@ -113,12 +113,12 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
       {/* 2. Responsive 6-Style Grid with Live Animated Previews */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-purple-400" />
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Select 1 of 6 Caption Styles</span>
           </label>
-          <span className="text-[11px] text-slate-400">
-            Active word: <span className="font-mono text-purple-300 font-bold">{PREVIEW_WORDS[activeWordIndex]}</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            Active word: <span className="font-mono text-purple-700 dark:text-purple-300 font-bold">{PREVIEW_WORDS[activeWordIndex]}</span>
           </span>
         </div>
 
@@ -130,10 +130,10 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
               <div
                 key={style.id}
                 onClick={() => setSelectedStyleId(style.id)}
-                className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-3 bg-[#0d0f1a]/90 ${
+                className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-3 bg-white dark:bg-[#0d0f1a]/90 shadow-sm ${
                   isSelected
-                    ? "border-2 border-purple-500 shadow-xl shadow-purple-950/50 bg-purple-950/20"
-                    : "border-white/10 hover:border-white/20 hover:bg-white/[0.03]"
+                    ? "border-2 border-purple-600 dark:border-purple-500 shadow-md bg-purple-50/50 dark:bg-purple-950/20"
+                    : "border-slate-200 dark:border-white/10 hover:border-purple-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-white/[0.03]"
                 }`}
               >
                 {/* Top Card Info & Radio Check */}
@@ -141,12 +141,12 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
                   <div className="space-y-0.5">
                     <h4
                       className={`text-sm font-bold transition-colors ${
-                        isSelected ? "text-white" : "text-slate-200"
+                        isSelected ? "text-purple-900 dark:text-white" : "text-slate-900 dark:text-slate-200"
                       }`}
                     >
                       {style.name}
                     </h4>
-                    <span className="text-[10px] font-mono text-purple-400 font-medium">
+                    <span className="text-[10px] font-mono text-purple-700 dark:text-purple-400 font-medium">
                       {style.creatorTag}
                     </span>
                   </div>
@@ -154,8 +154,8 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
                   <div
                     className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
                       isSelected
-                        ? "border-purple-500 bg-purple-600 text-white shadow-sm"
-                        : "border-white/20 bg-transparent"
+                        ? "border-purple-600 bg-purple-600 text-white shadow-sm"
+                        : "border-slate-300 dark:border-white/20 bg-transparent"
                     }`}
                   >
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -163,7 +163,7 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
                 </div>
 
                 {/* Live Animated Video Screen Mockup Container */}
-                <div className="h-32 rounded-xl bg-gradient-to-br from-black via-slate-950 to-neutral-900 border border-white/10 flex items-center justify-center p-3 relative overflow-hidden shadow-inner group">
+                <div className="h-32 rounded-xl bg-gradient-to-br from-slate-950 via-slate-900 to-neutral-900 border border-slate-800 dark:border-white/10 flex items-center justify-center p-3 relative overflow-hidden shadow-inner group">
                   {/* Subtle video background grid lines */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:16px_16px]" />
 
@@ -207,19 +207,19 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
                 </div>
 
                 {/* Description & Word Batch Pill */}
-                <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                   {style.description}
                 </p>
 
                 {/* Bottom Tags */}
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px]">
-                  <span className="text-slate-400 font-mono">
-                    Animation: <strong className="text-slate-200 capitalize">{style.animationType.replace("-", " ")}</strong>
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px]">
+                  <span className="text-slate-500 dark:text-slate-400 font-mono">
+                    Animation: <strong className="text-slate-700 dark:text-slate-200 capitalize">{style.animationType.replace("-", " ")}</strong>
                   </span>
 
                   <span
                     className={`font-semibold ${
-                      isSelected ? "text-purple-300" : "text-slate-500"
+                      isSelected ? "text-purple-700 dark:text-purple-300" : "text-slate-400 dark:text-slate-500"
                     }`}
                   >
                     {isSelected ? "Selected ✓" : "Click to select"}
@@ -232,13 +232,13 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
       </div>
 
       {/* 3. Caption Display Settings */}
-      <div className="p-4 rounded-2xl border border-white/10 bg-[#0d0f1a]/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0f1a]/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
         <div className="space-y-0.5">
-          <label className="text-xs font-bold text-white flex items-center gap-1.5">
-            <Type className="w-3.5 h-3.5 text-purple-400" />
+          <label className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <Type className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Words Displayed per Screen</span>
           </label>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
             Control the caption pacing on screen for optimal viewer retention.
           </p>
         </div>
@@ -252,7 +252,7 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 wordsPerBatch === num
                   ? "bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-600/30"
-                  : "bg-white/[0.04] text-slate-300 border-white/10 hover:border-white/20"
+                  : "bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
               }`}
             >
               {num} {num === 1 ? "Word (Fast)" : num === 2 ? "Words (Balanced)" : "Words (Phrase)"}
@@ -262,20 +262,20 @@ export function CaptionStep({ initialData, onBack, onNext }: CaptionStepProps) {
       </div>
 
       {/* 4. Bottom Navigation Buttons */}
-      <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+      <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Visual Style</span>
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-xs text-slate-400 text-right">
+          <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 text-right">
             Active Theme:{" "}
-            <strong className="text-purple-300 font-semibold">
+            <strong className="text-purple-700 dark:text-purple-300 font-semibold">
               {selectedStyle.name}
             </strong>
           </div>

@@ -271,10 +271,10 @@ function CreateSeriesContent() {
 
   if (isLoadingSeries) {
     return (
-      <div className="p-16 rounded-3xl border border-white/10 bg-[#0d0f1a]/80 text-center space-y-4 max-w-xl mx-auto my-12">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto" />
-        <h3 className="text-base font-bold text-white">Loading Series Data...</h3>
-        <p className="text-xs text-slate-400">
+      <div className="p-16 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0f1a]/80 text-center space-y-4 max-w-xl mx-auto my-12 shadow-sm">
+        <Loader2 className="w-8 h-8 text-purple-600 dark:text-purple-400 animate-spin mx-auto" />
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">Loading Series Data...</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Fetching full stepform configuration for editing.
         </p>
       </div>
@@ -288,14 +288,14 @@ function CreateSeriesContent() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Dashboard</span>
           </Link>
 
           {isEditing && (
-            <span className="px-3 py-1 rounded-xl bg-purple-600/20 border border-purple-500/30 text-purple-300 text-xs font-bold flex items-center gap-1.5">
+            <span className="px-3 py-1 rounded-xl bg-purple-600/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs font-bold flex items-center gap-1.5">
               <Edit className="w-3.5 h-3.5" />
               <span>Editing: {formData.scheduleData?.seriesName || "Series"}</span>
             </span>
@@ -305,27 +305,27 @@ function CreateSeriesContent() {
         {/* Dynamic Summary Badges */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {formData.niche && (
-            <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 font-semibold font-mono text-[11px]">
+            <span className="px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-700 dark:text-purple-300 font-semibold font-mono text-[11px]">
               Niche: {formData.niche.nicheTitle}
             </span>
           )}
           {formData.voiceData && (
-            <span className="px-2.5 py-1 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 font-semibold font-mono text-[11px]">
+            <span className="px-2.5 py-1 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20 text-cyan-700 dark:text-cyan-300 font-semibold font-mono text-[11px]">
               Voice: {formData.voiceData.voice.displayName} ({formData.voiceData.language.language})
             </span>
           )}
           {formData.musicData && (
-            <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-semibold font-mono text-[11px]">
+            <span className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold font-mono text-[11px]">
               Music: {formData.musicData.selectedTracks.length} Tracks
             </span>
           )}
           {formData.styleData && (
-            <span className="px-2.5 py-1 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-300 font-semibold font-mono text-[11px]">
+            <span className="px-2.5 py-1 rounded-xl bg-pink-50 dark:bg-pink-500/10 border border-pink-200 dark:border-pink-500/20 text-pink-700 dark:text-pink-300 font-semibold font-mono text-[11px]">
               Style: {formData.styleData.selectedStyle.name}
             </span>
           )}
           {formData.captionData && (
-            <span className="px-2.5 py-1 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 font-semibold font-mono text-[11px]">
+            <span className="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-yellow-500/10 border border-amber-200 dark:border-yellow-500/20 text-amber-700 dark:text-yellow-300 font-semibold font-mono text-[11px]">
               Captions: {formData.captionData.selectedCaptionStyle.name}
             </span>
           )}
@@ -334,8 +334,8 @@ function CreateSeriesContent() {
 
       {/* Success Notification Banner */}
       {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 flex items-center gap-3 animate-fade-in shadow-xl shadow-emerald-950/50">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-200 flex items-center gap-3 animate-fade-in shadow-md">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <div className="text-xs sm:text-sm font-semibold">{successMessage}</div>
         </div>
       )}

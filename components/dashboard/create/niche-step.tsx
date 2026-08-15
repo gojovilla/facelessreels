@@ -139,15 +139,15 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
 
   return (
     <div className="space-y-6">
-      {/* Soft Tabs Switcher (as in screenshot) */}
-      <div className="flex items-center p-1 bg-white/[0.04] border border-white/10 rounded-2xl w-fit">
+      {/* Soft Tabs Switcher */}
+      <div className="flex items-center p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl w-fit">
         <button
           type="button"
           onClick={() => setNicheType("available")}
-          className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all ${
+          className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             nicheType === "available"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-400 hover:text-white"
+              ? "bg-white dark:bg-purple-600 text-purple-700 dark:text-white shadow-sm border border-slate-200 dark:border-transparent"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
           Available Niche
@@ -156,17 +156,17 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
         <button
           type="button"
           onClick={() => setNicheType("custom")}
-          className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all ${
+          className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             nicheType === "custom"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-400 hover:text-white"
+              ? "bg-white dark:bg-purple-600 text-purple-700 dark:text-white shadow-sm border border-slate-200 dark:border-transparent"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
           Custom Niche
         </button>
       </div>
 
-      {/* TAB 1: Available Niche Cards Grid (Clean & Soft Minimalist Design) */}
+      {/* TAB 1: Available Niche Cards Grid */}
       {nicheType === "available" && (
         <div className="max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -178,10 +178,10 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
                 <div
                   key={topic.id}
                   onClick={() => setSelectedNicheId(topic.id)}
-                  className={`p-5 rounded-2xl transition-all cursor-pointer flex flex-col justify-between min-h-[140px] space-y-3 bg-[#0d0f1a]/80 ${
+                  className={`p-5 rounded-2xl transition-all cursor-pointer flex flex-col justify-between min-h-[140px] space-y-3 bg-white dark:bg-[#0d0f1a]/80 shadow-sm ${
                     isSelected
-                      ? "border-2 border-purple-500 shadow-lg shadow-purple-950/40"
-                      : "border border-white/10 hover:border-white/20 hover:bg-white/[0.03]"
+                      ? "border-2 border-purple-600 dark:border-purple-500 shadow-md bg-purple-50/60 dark:bg-purple-950/20"
+                      : "border border-slate-200 dark:border-white/10 hover:border-purple-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-white/[0.03]"
                   }`}
                 >
                   {/* Top Row: Left Icon Box, Right Check Badge when selected */}
@@ -201,10 +201,10 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
 
                   {/* Title & 1-line Description */}
                   <div className="space-y-1">
-                    <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
                       {topic.title}
                     </h3>
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                       {topic.description}
                     </p>
                   </div>
@@ -215,32 +215,32 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
         </div>
       )}
 
-      {/* TAB 2: Custom Niche Form (Soft & Clean) */}
+      {/* TAB 2: Custom Niche Form */}
       {nicheType === "custom" && (
-        <div className="p-6 rounded-2xl border border-white/10 bg-[#0d0f1a]/80 space-y-4 max-w-2xl">
+        <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0f1a]/80 space-y-4 max-w-2xl shadow-sm">
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-white">Define Custom Niche</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Define Custom Niche</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Type your custom series angle. The AI will adapt scriptwriting accordingly.
             </p>
           </div>
 
           <div className="space-y-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Custom Topic Name <span className="text-purple-400">*</span>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Custom Topic Name <span className="text-purple-600 dark:text-purple-400">*</span>
               </label>
               <input
                 type="text"
                 value={customTitle}
                 onChange={(e) => setCustomTitle(e.target.value)}
                 placeholder="e.g. AI Robotics Breakthroughs, Luxury Supercars..."
-                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-purple-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Story Guidelines / Context (Optional)
               </label>
               <textarea
@@ -248,7 +248,7 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Briefly describe what kind of stories or facts to generate..."
-                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:border-purple-500 transition-colors resize-none"
               />
             </div>
           </div>
@@ -257,18 +257,18 @@ export function NicheStep({ initialData, onNext }: NicheStepProps) {
 
       {/* Bottom Continue Action Bar */}
       <div className="pt-2 flex items-center justify-between">
-        <div className="text-xs text-slate-400">
+        <div className="text-xs text-slate-500 dark:text-slate-400">
           {nicheType === "available" ? (
             <span>
               Selected:{" "}
-              <strong className="text-purple-300 font-semibold">
+              <strong className="text-purple-700 dark:text-purple-300 font-semibold">
                 {NICHE_TOPICS.find((n) => n.id === selectedNicheId)?.title}
               </strong>
             </span>
           ) : (
             <span>
               Custom:{" "}
-              <strong className="text-purple-300 font-semibold">
+              <strong className="text-purple-700 dark:text-purple-300 font-semibold">
                 {customTitle || "None"}
               </strong>
             </span>

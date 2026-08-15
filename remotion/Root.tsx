@@ -7,10 +7,10 @@ export const defaultReelProps: MainVideoReelProps = {
   title: "Automated Viral Short",
   scenes: [],
   imageUrls: [
-    "/video-style/cinematic-realism.jpg",
-    "/video-style/cyberpunk-neon.jpg",
-    "/video-style/gothic-oil.jpg",
-    "/video-style/dark-anime.jpg",
+    "/video-style/realism.jpg",
+    "/video-style/dark_fantasy_new.jpg",
+    "/video-style/anime.jpg",
+    "/video-style/fantastic.png",
   ],
   audioUrl: "/audio/aura-2-odysseus-en.mp3",
   subtitles: [

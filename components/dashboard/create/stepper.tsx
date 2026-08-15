@@ -17,17 +17,16 @@ export function Stepper({
     <div className="w-full space-y-3">
       {/* Step Indicator Text */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold tracking-wider text-purple-400 uppercase">
+        <span className="text-xs font-bold tracking-wider text-purple-600 dark:text-purple-400 uppercase">
           Step {currentStep} of {totalSteps}
         </span>
       </div>
 
-      {/* 6 Clean Segmented Progress Bars (as in reference design) */}
+      {/* 6 Clean Segmented Progress Bars */}
       <div className="grid grid-cols-6 gap-2 sm:gap-3">
         {Array.from({ length: totalSteps }).map((_, index) => {
           const stepNumber = index + 1;
           const isCompletedOrActive = currentStep >= stepNumber;
-          const isCurrent = currentStep === stepNumber;
 
           return (
             <div
@@ -36,7 +35,7 @@ export function Stepper({
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 isCompletedOrActive
                   ? "bg-gradient-to-r from-purple-500 to-indigo-500 shadow-sm shadow-purple-500/40"
-                  : "bg-white/10"
+                  : "bg-slate-200 dark:bg-white/10"
               } ${stepNumber < currentStep ? "cursor-pointer hover:opacity-80" : ""}`}
             />
           );

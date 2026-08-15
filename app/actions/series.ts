@@ -342,14 +342,20 @@ export async function triggerReelGeneration(
       : "Automated Viral Short";
 
     const visualStyleId = (seriesData?.visual_style_id || seriesData?.visual_style || "cinematic").toLowerCase();
-    let defaultThumbnail = "/video-style/cinematic-realism.jpg";
-    if (visualStyleId.includes("cyberpunk")) defaultThumbnail = "/video-style/cyberpunk-neon.jpg";
-    else if (visualStyleId.includes("anime")) defaultThumbnail = "/video-style/dark-anime.jpg";
-    else if (visualStyleId.includes("comic")) defaultThumbnail = "/video-style/comic-book.jpg";
-    else if (visualStyleId.includes("oil") || visualStyleId.includes("baroque")) defaultThumbnail = "/video-style/gothic-oil.jpg";
-    else if (visualStyleId.includes("pixar") || visualStyleId.includes("3d")) defaultThumbnail = "/video-style/pixar-3d.jpg";
-    else if (visualStyleId.includes("gta") || visualStyleId.includes("vector")) defaultThumbnail = "/video-style/gta-vector.jpg";
-    else if (visualStyleId.includes("watercolor") || visualStyleId.includes("horror")) defaultThumbnail = "/video-style/watercolor-horror.jpg";
+    let defaultThumbnail = "/video-style/realism.jpg";
+    if (visualStyleId.includes("fantasy") || visualStyleId.includes("gothic")) defaultThumbnail = "/video-style/dark_fantasy_new.jpg";
+    else if (visualStyleId.includes("creepy") || visualStyleId.includes("horror") || visualStyleId.includes("eerie")) defaultThumbnail = "/video-style/creepy_comic.jpg";
+    else if (visualStyleId.includes("comic") || visualStyleId.includes("graphic")) defaultThumbnail = "/video-style/comic.jpg";
+    else if (visualStyleId.includes("ghibli")) defaultThumbnail = "/video-style/ghibli.jpg";
+    else if (visualStyleId.includes("anime") || visualStyleId.includes("shonen")) defaultThumbnail = "/video-style/anime.jpg";
+    else if (visualStyleId.includes("disney") || visualStyleId.includes("pixar") || visualStyleId.includes("3d")) defaultThumbnail = "/video-style/disney.jpeg";
+    else if (visualStyleId.includes("lego")) defaultThumbnail = "/video-style/lego.jpg";
+    else if (visualStyleId.includes("cartoon") || visualStyleId.includes("vector")) defaultThumbnail = "/video-style/modern_cartoon.png";
+    else if (visualStyleId.includes("mythology") || visualStyleId.includes("gods") || visualStyleId.includes("ancient")) defaultThumbnail = "/video-style/mythology.jpg";
+    else if (visualStyleId.includes("oil") || visualStyleId.includes("painting") || visualStyleId.includes("renaissance")) defaultThumbnail = "/video-style/painting.png";
+    else if (visualStyleId.includes("pixel") || visualStyleId.includes("game")) defaultThumbnail = "/video-style/pixel_art.jpg";
+    else if (visualStyleId.includes("polaroid") || visualStyleId.includes("vintage") || visualStyleId.includes("film")) defaultThumbnail = "/video-style/polaroid.jpg";
+    else if (visualStyleId.includes("fantastic") || visualStyleId.includes("scifi") || visualStyleId.includes("space") || visualStyleId.includes("cyberpunk")) defaultThumbnail = "/video-style/fantastic.png";
 
     // 2. Insert initial placeholder reel with status: "generating"
     const newReel = {
