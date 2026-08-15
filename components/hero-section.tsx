@@ -1,23 +1,35 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   ArrowRight,
   Play,
   CheckCircle2,
-  Mail,
   Zap,
   TrendingUp,
-  ShieldCheck,
   Star,
-  Users,
-  Video,
   Clock,
+  LayoutDashboard,
 } from "lucide-react";
-import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 export function HeroSection() {
+  const { isSignedIn } = useUser();
+  const { openSignIn } = useClerk();
+  const router = useRouter();
+
+  const handleDashboardAction = () => {
+    if (isSignedIn) {
+      router.push("/dashboard");
+    } else {
+      openSignIn({
+        fallbackRedirectUrl: "/dashboard",
+      });
+    }
+  };
+
   return (
     <section className="relative pt-32 pb-16 lg:pt-40 lg:pb-24 overflow-hidden bg-grid-pattern">
       {/* Ambient Glows */}
@@ -28,7 +40,10 @@ export function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-4xl mx-auto space-y-7">
           {/* Release Announcement Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-purple-500/30 backdrop-blur-md shadow-lg shadow-purple-500/10 hover:border-purple-500/50 transition-all cursor-pointer group">
+          <div
+            onClick={handleDashboardAction}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-purple-500/30 backdrop-blur-md shadow-lg shadow-purple-500/10 hover:border-purple-500/50 transition-all cursor-pointer group"
+          >
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
@@ -57,24 +72,24 @@ export function HeroSection() {
             <span className="text-purple-300 font-semibold">Email Video Digests</span> without lifting a finger.
           </p>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons (Dashboard / Auth Integrated) */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <a
-              href="#live-demo"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-base shadow-xl shadow-purple-600/30 hover:shadow-purple-600/50 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group"
+            <button
+              onClick={handleDashboardAction}
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-base shadow-xl shadow-purple-600/30 hover:shadow-purple-600/50 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group cursor-pointer"
             >
               <Sparkles className="w-5 h-5 text-cyan-200 group-hover:rotate-12 transition-transform" />
-              <span>Start Free — Generate Reel</span>
+              <span>{isSignedIn ? "Go to Dashboard" : "Start Free — Open Dashboard"}</span>
               <ArrowRight className="w-4 h-4 text-white/80 group-hover:translate-x-1 transition-transform" />
-            </a>
+            </button>
 
-            <a
-              href="#scheduler"
-              className="w-full sm:w-auto px-7 py-4 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white font-semibold text-base backdrop-blur-md transition-all flex items-center justify-center gap-2 hover:border-purple-500/40"
+            <button
+              onClick={handleDashboardAction}
+              className="w-full sm:w-auto px-7 py-4 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white font-semibold text-base backdrop-blur-md transition-all flex items-center justify-center gap-2 hover:border-purple-500/40 cursor-pointer"
             >
-              <Play className="w-4 h-4 text-purple-400 fill-purple-400/30" />
-              <span>See Auto-Scheduler Tour</span>
-            </a>
+              <LayoutDashboard className="w-4 h-4 text-purple-400" />
+              <span>Launch Creator Dashboard</span>
+            </button>
           </div>
 
           {/* Guarantee / Micro Social proof */}
@@ -83,10 +98,10 @@ export function HeroSection() {
               <CheckCircle2 className="w-4 h-4 text-emerald-400" /> No credit card required
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Free 3 videos on sign up
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Free 3 AI videos on sign up
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Official YouTube & Meta API Verified
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Auto-saved to your account
             </span>
           </div>
 
