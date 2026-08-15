@@ -230,28 +230,21 @@ export default function DashboardSeriesPage() {
     setIsSavingEdit(false);
   };
 
-  // Action: Trigger Instant Video Generation
+  // Action: Trigger Instant Video Generation & Navigate to Videos Page
   const handleTriggerGenerate = async (series: SeriesItem) => {
     setGeneratingSeriesId(series.id);
     try {
       const res = await triggerReelGeneration(series.id);
       if (res.success) {
-        setToastMessage(res.message);
-        setSeriesList((prev) =>
-          prev.map((s) =>
-            s.id === series.id
-              ? { ...s, scheduled_videos: (s.scheduled_videos || 0) + 1 }
-              : s
-          )
-        );
-        setStats((prev) => ({ ...prev, queuedReels: prev.queuedReels + 1 }));
-        setTimeout(() => setToastMessage(null), 4000);
+        setToastMessage("AI generation started! Navigating to video production library...");
+        // Immediately navigate user to video library page
+        router.push(`/dashboard/videos?seriesId=${series.id}&generating=true`);
       } else {
         alert(res.message || "Failed to trigger generation");
+        setGeneratingSeriesId(null);
       }
     } catch (err) {
       console.error(err);
-    } finally {
       setGeneratingSeriesId(null);
     }
   };

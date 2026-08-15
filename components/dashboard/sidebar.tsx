@@ -22,6 +22,14 @@ import {
 } from "lucide-react";
 import { useUser, UserButton } from "@clerk/nextjs";
 
+interface NavItem {
+  name: string;
+  href: string;
+  alias?: string;
+  icon: any;
+  badge?: string;
+}
+
 interface SidebarProps {
   onMobileClose?: () => void;
 }
@@ -31,25 +39,22 @@ export function DashboardSidebar({ onMobileClose }: SidebarProps) {
   const router = useRouter();
   const { user } = useUser();
 
-  const navItems = [
+  const navItems: NavItem[] = [
     {
-      name: "Series",
-      href: "/dashboard/series",
-      alias: "/dashboard",
+      name: "Series Hub",
+      href: "/dashboard",
+      alias: "/dashboard/series",
       icon: Tv,
-      badge: "3 Active",
     },
     {
       name: "Videos",
       href: "/dashboard/videos",
       icon: Video,
-      badge: "12 Ready",
     },
     {
       name: "Guides",
       href: "/dashboard/guides",
       icon: BookOpen,
-      badge: "New",
     },
     {
       name: "Billing",
@@ -63,7 +68,7 @@ export function DashboardSidebar({ onMobileClose }: SidebarProps) {
     },
   ];
 
-  const isActive = (item: (typeof navItems)[0]) => {
+  const isActive = (item: NavItem) => {
     if (pathname === item.href) return true;
     if (item.alias && pathname === item.alias) return true;
     if (pathname.startsWith(item.href) && item.href !== "/dashboard") return true;

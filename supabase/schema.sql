@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS public.reels (
   voice_name TEXT,
   caption_style TEXT DEFAULT 'Hormozi Viral Pop',
   background_music TEXT,
+  audio_url TEXT,
   video_url TEXT,
   thumbnail_url TEXT,
   duration_seconds INT,
@@ -117,6 +118,10 @@ CREATE TABLE IF NOT EXISTS public.reels (
   viral_score INT DEFAULT 95,
   predicted_views TEXT,
   actual_views INT NOT NULL DEFAULT 0,
+  scenes JSONB DEFAULT '[]'::jsonb,
+  subtitles JSONB DEFAULT '[]'::jsonb,
+  image_prompts TEXT[] DEFAULT '{}'::TEXT[],
+  metadata JSONB DEFAULT '{}'::jsonb,
   scheduled_at TIMESTAMPTZ,
   published_at TIMESTAMPTZ,
   error_message TEXT,
@@ -124,7 +129,29 @@ CREATE TABLE IF NOT EXISTS public.reels (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 6. Connected Social Channels & Email Integrations
+-- 6. Video Production Assets Table (Dedicated Asset Pipeline Registry)
+CREATE TABLE IF NOT EXISTS public.video_assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  series_id UUID REFERENCES public.series(id) ON DELETE CASCADE,
+  reel_id UUID REFERENCES public.reels(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  script TEXT NOT NULL,
+  hook TEXT,
+  voice_url TEXT,
+  voice_provider TEXT,
+  voice_id TEXT,
+  caption_style TEXT,
+  subtitles JSONB NOT NULL DEFAULT '[]'::jsonb,
+  scenes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  image_prompts TEXT[] DEFAULT '{}'::TEXT[],
+  image_urls TEXT[] DEFAULT '{}'::TEXT[],
+  status TEXT NOT NULL DEFAULT 'ready_to_render',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 7. Connected Social Channels & Email Integrations
 CREATE TABLE IF NOT EXISTS public.channels (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL,
@@ -241,3 +268,54 @@ CREATE INDEX IF NOT EXISTS idx_reels_series_id ON public.reels(series_id);
 CREATE INDEX IF NOT EXISTS idx_reels_status ON public.reels(status);
 CREATE INDEX IF NOT EXISTS idx_schedules_user_id ON public.schedules(user_id);
 CREATE INDEX IF NOT EXISTS idx_schedules_reel_id ON public.schedules(reel_id);
+
+-- ==============================================================================
+-- 9. SUPABASE STORAGE BUCKET CONFIGURATION (voiceovers, images, renders)
+-- ==============================================================================
+-- Ensure 'voiceovers', 'images', and 'renders' buckets are created and set to public
+INSERT INTO storage.buckets (id, name, public)
+VALUES 
+  ('voiceovers', 'voiceovers', true),
+  ('images', 'images', true),
+  ('renders', 'renders', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Storage Security Policies for 'voiceovers'
+DO $$ BEGIN
+  CREATE POLICY "Allow public select on voiceovers" ON storage.objects
+  FOR SELECT USING (bucket_id = 'voiceovers');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Allow public insert on voiceovers" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'voiceovers');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Allow public update on voiceovers" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'voiceovers') WITH CHECK (bucket_id = 'voiceovers');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+-- Storage Security Policies for 'images'
+DO $$ BEGIN
+  CREATE POLICY "Allow public select on images" ON storage.objects
+  FOR SELECT USING (bucket_id = 'images');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Allow public insert on images" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'images');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Allow public update on images" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'images') WITH CHECK (bucket_id = 'images');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+

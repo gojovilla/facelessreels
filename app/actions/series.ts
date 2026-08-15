@@ -2,6 +2,7 @@
 
 import { currentUser } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
+import { inngest } from "@/inngest/client";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -73,20 +74,35 @@ export interface ReelItem {
   id: string;
   user_id?: string;
   series_id?: string;
-  title: string;
+  series_title?: string;
   series?: string;
+  title: string;
   niche: string;
-  status: "draft" | "generating" | "scheduled" | "published" | "failed" | string;
-  views?: number | string;
-  publishedDate?: string;
+  hook?: string;
+  script?: string;
+  voice_name?: string;
+  voice_id?: string;
+  caption_style?: string;
+  background_music?: string;
+  audio_url?: string;
+  video_url?: string;
+  thumbnail_url?: string;
   duration?: string;
   duration_seconds?: number;
   viralScore?: number;
   viral_score?: number;
+  status: "draft" | "generating" | "scheduled" | "published" | "failed" | string;
+  views?: number | string;
+  actual_views?: number;
+  scenes?: any[];
+  subtitles?: any[];
+  image_prompts?: string[];
   channels?: string[];
-  video_url?: string;
-  thumbnail_url?: string;
+  publishedDate?: string;
+  scheduled_at?: string;
+  published_at?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 export async function createSeries(input: CreateSeriesInput): Promise<{
@@ -309,34 +325,49 @@ export async function editSeriesDetails(
 
 export async function triggerReelGeneration(
   seriesId: string
-): Promise<{ success: boolean; message: string; reel?: ReelItem }> {
+): Promise<{ success: boolean; message: string; reel?: ReelItem; eventIds?: string[] }> {
   try {
     const user = await currentUser();
     if (!user) return { success: false, message: "Unauthorized" };
 
-    // Fetch series info
+    // 1. Fetch series info
     const { data: seriesData } = await supabase
       .from("series")
       .select("*")
       .eq("id", seriesId)
       .single();
 
+    const initialTitle = seriesData?.title
+      ? `${seriesData.title} - Episode #${(seriesData.published_videos || 0) + 1}`
+      : "Automated Viral Short";
+
+    const visualStyleId = (seriesData?.visual_style_id || seriesData?.visual_style || "cinematic").toLowerCase();
+    let defaultThumbnail = "/video-style/cinematic-realism.jpg";
+    if (visualStyleId.includes("cyberpunk")) defaultThumbnail = "/video-style/cyberpunk-neon.jpg";
+    else if (visualStyleId.includes("anime")) defaultThumbnail = "/video-style/dark-anime.jpg";
+    else if (visualStyleId.includes("comic")) defaultThumbnail = "/video-style/comic-book.jpg";
+    else if (visualStyleId.includes("oil") || visualStyleId.includes("baroque")) defaultThumbnail = "/video-style/gothic-oil.jpg";
+    else if (visualStyleId.includes("pixar") || visualStyleId.includes("3d")) defaultThumbnail = "/video-style/pixar-3d.jpg";
+    else if (visualStyleId.includes("gta") || visualStyleId.includes("vector")) defaultThumbnail = "/video-style/gta-vector.jpg";
+    else if (visualStyleId.includes("watercolor") || visualStyleId.includes("horror")) defaultThumbnail = "/video-style/watercolor-horror.jpg";
+
+    // 2. Insert initial placeholder reel with status: "generating"
     const newReel = {
       user_id: user.id,
       series_id: seriesId,
-      title: seriesData?.title
-        ? `${seriesData.title} - Episode #${(seriesData.published_videos || 0) + 1}`
-        : "Automated Viral Short",
+      title: initialTitle,
       niche: seriesData?.niche || "Viral",
-      hook: "Did you know this shocking truth that 99% of people miss?",
-      script: "In the depths of human history, one rule dictated the outcome of every battle and empire.",
-      voice_name: seriesData?.voice || "Deepgram Neural",
+      hook: "Crafting viral hook & script with Gemini AI...",
+      script: "Synthesizing AI video script and neural voiceover...",
+      voice_name: seriesData?.voice || "Neural Voice",
       caption_style: seriesData?.caption_style || "Hormozi Viral Pop",
+      thumbnail_url: defaultThumbnail,
       status: "generating",
       viral_score: Math.floor(Math.random() * 8) + 92,
-      duration_seconds: 45,
+      duration_seconds: seriesData?.duration_option?.includes("60") ? 65 : 45,
       actual_views: 0,
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const { data: reelData } = await supabase
@@ -345,7 +376,21 @@ export async function triggerReelGeneration(
       .select("*")
       .single();
 
-    // Increment scheduled count in series
+    const createdReelId = reelData?.id;
+
+    // 3. Dispatch Inngest Video Generation Pipeline Event with reelId
+    const { ids } = await inngest.send({
+      name: "video/generate.reel",
+      data: {
+        seriesId,
+        userId: user.id,
+        userEmail: user.emailAddresses?.[0]?.emailAddress,
+        reelId: createdReelId,
+        triggeredAt: new Date().toISOString(),
+      },
+    });
+
+    // 4. Increment scheduled count in series
     await supabase
       .from("series")
       .update({
@@ -356,8 +401,9 @@ export async function triggerReelGeneration(
 
     return {
       success: true,
-      message: "AI video generation dispatched! Rendering speech, visuals, and animations in pipeline.",
+      message: "AI video generation dispatched!",
       reel: reelData || (newReel as any),
+      eventIds: ids,
     };
   } catch (err: any) {
     return { success: false, message: err?.message || "Failed to trigger video generation" };
@@ -378,7 +424,7 @@ export async function getUserReels(seriesId?: string): Promise<{
 
     let query = supabase
       .from("reels")
-      .select("*")
+      .select("*, series:series_id(title, visual_style, visual_style_id)")
       .or(`user_id.eq.${user.id},user_id.eq.${email}`);
 
     if (seriesId) {
@@ -388,13 +434,48 @@ export async function getUserReels(seriesId?: string): Promise<{
     const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
-      return { success: true, reels: [] };
+      // Fallback query if relation is not established
+      const { data: rawData } = await supabase
+        .from("reels")
+        .select("*")
+        .or(`user_id.eq.${user.id},user_id.eq.${email}`)
+        .order("created_at", { ascending: false });
+
+      return { success: true, reels: (rawData || []) as ReelItem[] };
     }
 
-    return { success: true, reels: data || [] };
+    const formattedReels: ReelItem[] = (data || []).map((item: any) => ({
+      ...item,
+      series_title: item.series?.title || item.series || undefined,
+      series: item.series?.title || item.series || undefined,
+    }));
+
+    return { success: true, reels: formattedReels };
   } catch (err) {
     console.error("Error fetching user reels:", err);
     return { success: false, reels: [] };
+  }
+}
+
+export async function deleteReel(
+  reelId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await currentUser();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const { error } = await supabase
+      .from("reels")
+      .delete()
+      .eq("id", reelId);
+
+    if (error) {
+      console.warn("Delete reel error:", error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Failed to delete reel" };
   }
 }
 
