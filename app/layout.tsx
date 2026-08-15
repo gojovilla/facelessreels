@@ -55,6 +55,7 @@ export default function RootLayout({
         },
       }}
     >
+      <head><script defer data-tracker="c3a33781-ece4-435f-8532-117b5b00cd98" data-hosts="facelessreels-three.vercel.app" src="https://www.webtracky.com/analytics.js"></script></head>
       <html
         lang="en"
         suppressHydrationWarning
