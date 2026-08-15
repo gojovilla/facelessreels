@@ -49,20 +49,6 @@ export const Language: LanguageOption[] = [
     modelLangCode: "en-US",
   },
   {
-    language: "Spanish",
-    countryCode: "MX",
-    countryFlag: "🇲🇽",
-    modelName: "deepgram",
-    modelLangCode: "es-MX",
-  },
-  {
-    language: "German",
-    countryCode: "DE",
-    countryFlag: "🇩🇪",
-    modelName: "deepgram",
-    modelLangCode: "de-DE",
-  },
-  {
     language: "Hindi",
     countryCode: "IN",
     countryFlag: "🇮🇳",
@@ -70,11 +56,18 @@ export const Language: LanguageOption[] = [
     modelLangCode: "hi-IN",
   },
   {
-    language: "Marathi",
+    language: "Spanish",
+    countryCode: "ES",
+    countryFlag: "🇪🇸",
+    modelName: "deepgram",
+    modelLangCode: "es-ES",
+  },
+  {
+    language: "Tamil",
     countryCode: "IN",
     countryFlag: "🇮🇳",
     modelName: "fonadalab",
-    modelLangCode: "mr-IN",
+    modelLangCode: "ta-IN",
   },
   {
     language: "Telugu",
@@ -82,6 +75,13 @@ export const Language: LanguageOption[] = [
     countryFlag: "🇮🇳",
     modelName: "fonadalab",
     modelLangCode: "te-IN",
+  },
+  {
+    language: "German",
+    countryCode: "DE",
+    countryFlag: "🇩🇪",
+    modelName: "deepgram",
+    modelLangCode: "de-DE",
   },
 ];
 
@@ -107,51 +107,51 @@ export const DeepgramEnglishVoices: VoiceOption[] = [
   },
   {
     model: "deepgram",
-    modelName: "aura-2-amalthea-en",
-    displayName: "Amalthea",
-    preview: "deepgram-aura-2-amalthea-en.wav",
+    modelName: "aura-2-helios-en",
+    displayName: "Helios",
+    preview: "deepgram-aura-2-odysseus-en.wav",
+    gender: "male",
+    langCode: "en-US",
+    sampleText: "In the world of relentless ambition, only those with iron discipline survive.",
+  },
+  {
+    model: "deepgram",
+    modelName: "aura-2-luna-en",
+    displayName: "Luna",
+    preview: "deepgram-aura-2-thalia-en.wav",
     gender: "female",
     langCode: "en-US",
     sampleText: "Deep in the darkest depths of the ocean lies a mystery scientists cannot explain.",
   },
   {
     model: "deepgram",
-    modelName: "aura-2-andromeda-en",
-    displayName: "Andromeda",
-    preview: "deepgram-aura-2-andromeda-en.wav",
-    gender: "female",
-    langCode: "en-US",
-    sampleText: "In the year twenty twenty six, artificial intelligence took a leap that changed everything.",
-  },
-  {
-    model: "deepgram",
-    modelName: "aura-2-orion-en",
-    displayName: "Orion",
-    preview: "deepgram-aura-2-orion-en.wav",
+    modelName: "aura-2-arcas-en",
+    displayName: "Arcas",
+    preview: "deepgram-aura-2-odysseus-en.wav",
     gender: "male",
     langCode: "en-US",
-    sampleText: "Here is the exact IRS loophole that billionaires use to legally pay zero tax.",
+    sampleText: "Here is the exact financial blueprint billionaires use to preserve and multiply wealth.",
   },
 ];
 
-// Deepgram Spanish Voices (es-MX)
+// Deepgram Spanish Voices (es-ES / es-MX)
 export const DeepgramSpanishVoices: VoiceOption[] = [
   {
     model: "deepgram",
-    modelName: "aura-2-mateo-es",
-    displayName: "Mateo",
-    preview: "deepgram-aura-2-mateo-es.wav",
+    modelName: "aura-2-nestor-es",
+    displayName: "Nestor",
+    preview: "deepgram-aura-2-odysseus-en.wav",
     gender: "male",
-    langCode: "es-MX",
+    langCode: "es-ES",
     sampleText: "Descubre el poder de tu mente para dominar cualquier conversación.",
   },
   {
     model: "deepgram",
-    modelName: "aura-2-helen-es",
-    displayName: "Helen",
-    preview: "deepgram-aura-2-helen-es.wav",
+    modelName: "aura-2-diana-es",
+    displayName: "Diana",
+    preview: "deepgram-aura-2-thalia-en.wav",
     gender: "female",
-    langCode: "es-MX",
+    langCode: "es-ES",
     sampleText: "Este es el misterio psicológico que cambiará por completo cómo ves a las personas.",
   },
 ];
@@ -160,30 +160,21 @@ export const DeepgramSpanishVoices: VoiceOption[] = [
 export const DeepgramGermanVoices: VoiceOption[] = [
   {
     model: "deepgram",
-    modelName: "aura-2-marcus-de",
-    displayName: "Marcus",
-    preview: "deepgram-aura-2-marcus-de.wav",
-    gender: "male",
+    modelName: "aura-2-brigit-de",
+    displayName: "Brigit",
+    preview: "deepgram-aura-2-thalia-en.wav",
+    gender: "female",
     langCode: "de-DE",
     sampleText: "Erkenne die Kraft deiner Gedanken und beherrsche jeden Moment deines Lebens.",
   },
-  {
-    model: "deepgram",
-    modelName: "aura-2-hannah-de",
-    displayName: "Hannah",
-    preview: "deepgram-aura-2-hannah-de.wav",
-    gender: "female",
-    langCode: "de-DE",
-    sampleText: "Hier ist das Geheimnis für unaufhaltsamen Erfolg und eiserne Disziplin.",
-  },
 ];
 
-// FonadaLab Hindi Voices ONLY (hi-IN)
+// FonadaLab Hindi Voices (hi-IN) - Verified Active Neural Models
 export const FonadaHindiVoices: VoiceOption[] = [
   {
     model: "fonadalab",
-    modelName: "fonada-rohit-hi",
-    displayName: "Rohit",
+    modelName: "fonada-dhruv-hi",
+    displayName: "Dhruv",
     preview: "fonada-rohit-hi.wav",
     gender: "male",
     langCode: "hi-IN",
@@ -191,8 +182,8 @@ export const FonadaHindiVoices: VoiceOption[] = [
   },
   {
     model: "fonadalab",
-    modelName: "fonada-priya-hi",
-    displayName: "Priya",
+    modelName: "fonada-vaanee-hi",
+    displayName: "Vaanee",
     preview: "fonada-priya-hi.wav",
     gender: "female",
     langCode: "hi-IN",
@@ -200,8 +191,8 @@ export const FonadaHindiVoices: VoiceOption[] = [
   },
   {
     model: "fonadalab",
-    modelName: "fonada-kabir-hi",
-    displayName: "Kabir",
+    modelName: "fonada-swastik-hi",
+    displayName: "Swastik",
     preview: "fonada-kabir-hi.wav",
     gender: "male",
     langCode: "hi-IN",
@@ -209,56 +200,110 @@ export const FonadaHindiVoices: VoiceOption[] = [
   },
   {
     model: "fonadalab",
-    modelName: "fonada-neha-hi",
-    displayName: "Neha",
+    modelName: "fonada-tara-hi",
+    displayName: "Tara",
     preview: "fonada-neha-hi.wav",
     gender: "female",
     langCode: "hi-IN",
     sampleText: "इतिहास की वे रहस्यमयी कहानियां जिन्हें दुनिया से छुपाया गया था।",
   },
-];
-
-// FonadaLab Marathi Voices ONLY (mr-IN)
-export const FonadaMarathiVoices: VoiceOption[] = [
   {
     model: "fonadalab",
-    modelName: "fonada-aarav-mr",
-    displayName: "Aarav",
-    preview: "fonada-aarav-mr.wav",
+    modelName: "fonada-raag-hi",
+    displayName: "Raag",
+    preview: "fonada-rohit-hi.wav",
     gender: "male",
-    langCode: "mr-IN",
-    sampleText: "यशस्वी होण्यासाठी सर्वात महत्त्वाची गोष्ट म्हणजे तुमची शिस्त आणि संयम.",
+    langCode: "hi-IN",
+    sampleText: "जब इरादे मजबूत हों, तो हर मुश्किल रास्ता आसान बन जाता है।",
   },
   {
     model: "fonadalab",
-    modelName: "fonada-tanvi-mr",
-    displayName: "Tanvi",
-    preview: "fonada-tanvi-mr.wav",
+    modelName: "fonada-ruhi-hi",
+    displayName: "Ruhi",
+    preview: "fonada-priya-hi.wav",
     gender: "female",
-    langCode: "mr-IN",
-    sampleText: "जीवनात मोठे ध्येय गाठण्यासाठी दररोज कठोर मेहनत करणे आवश्यक आहे.",
+    langCode: "hi-IN",
+    sampleText: "सफलता का असली राज हर दिन की निरंतर मेहनत में छुपा है।",
   },
 ];
 
-// FonadaLab Telugu Voices ONLY (te-IN)
+// FonadaLab Tamil Voices (ta-IN) - Verified Active Neural Models
+export const FonadaTamilVoices: VoiceOption[] = [
+  {
+    model: "fonadalab",
+    modelName: "fonada-vaani-ta",
+    displayName: "Vaani",
+    preview: "fonada-priya-hi.wav",
+    gender: "female",
+    langCode: "ta-IN",
+    sampleText: "வெற்றி பெறுவதற்கு மிக முக்கியமான விஷயம் உங்கள் ஒழுக்கமும் விடாமுயற்சியும் தான்.",
+  },
+  {
+    model: "fonadalab",
+    modelName: "fonada-dhruv-ta",
+    displayName: "Dhruv",
+    preview: "fonada-rohit-hi.wav",
+    gender: "male",
+    langCode: "ta-IN",
+    sampleText: "வாழ்க்கையில் பெரிய இலக்கை அடைய தினமும் கடினமாக உழைக்க வேண்டும்.",
+  },
+  {
+    model: "fonadalab",
+    modelName: "fonada-isai-ta",
+    displayName: "Isai",
+    preview: "fonada-priya-hi.wav",
+    gender: "female",
+    langCode: "ta-IN",
+    sampleText: "மனித மனவியலின் இந்த ரகசியம் உங்கள் சிந்தனையை மாற்றும்.",
+  },
+  {
+    model: "fonadalab",
+    modelName: "fonada-swaram-ta",
+    displayName: "Swaram",
+    preview: "fonada-kabir-hi.wav",
+    gender: "male",
+    langCode: "ta-IN",
+    sampleText: "வரலாற்றில் மறைக்கப்பட்ட பல மர்மமான உண்மை கதைகள்.",
+  },
+];
+
+// FonadaLab Telugu Voices (te-IN) - Verified Active Neural Models
 export const FonadaTeluguVoices: VoiceOption[] = [
   {
     model: "fonadalab",
-    modelName: "fonada-sai-te",
-    displayName: "Sai",
-    preview: "fonada-sai-te.wav",
+    modelName: "fonada-dhruv-te",
+    displayName: "Dhruv",
+    preview: "fonada-rohit-hi.wav",
     gender: "male",
     langCode: "te-IN",
-    sampleText: "జీవితంలో విజయం సాధించడానికి క్రమశిక్షణే అతి ముఖ్యమైన ఆయుధం.",
+    sampleText: "విజయం సాధించడానికి క్రమశిక్షణ మరియు పట్టుదల చాలా ముఖ్యం.",
   },
   {
     model: "fonadalab",
-    modelName: "fonada-ananya-te",
-    displayName: "Ananya",
-    preview: "fonada-ananya-te.wav",
+    modelName: "fonada-aadhira-te",
+    displayName: "Aadhira",
+    preview: "fonada-priya-hi.wav",
     gender: "female",
     langCode: "te-IN",
-    sampleText: "మీ జీవితాన్ని మార్చే అత్యంత शक्तिవంతమైన మైండ్‌సెట్ రహస్యాలు ఇవే.",
+    sampleText: "జీవితంలో గొప్ప లక్ష్యాలను సాధించడానికి నిరంతర శ్రమ అవసరం.",
+  },
+  {
+    model: "fonadalab",
+    modelName: "fonada-ansh-te",
+    displayName: "Ansh",
+    preview: "fonada-kabir-hi.wav",
+    gender: "male",
+    langCode: "te-IN",
+    sampleText: "చరిత్రలో దాగి ఉన్న అనేక ఆసక్తికరమైన నిజాలు ఇవే.",
+  },
+  {
+    model: "fonadalab",
+    modelName: "fonada-priya-te",
+    displayName: "Priya",
+    preview: "fonada-priya-hi.wav",
+    gender: "female",
+    langCode: "te-IN",
+    sampleText: "మనిషి ఆలోచన విధానాన్ని మార్చే మానసిక రహస్యాలు.",
   },
 ];
 
@@ -267,7 +312,7 @@ export const ALL_VOICES: VoiceOption[] = [
   ...DeepgramSpanishVoices,
   ...DeepgramGermanVoices,
   ...FonadaHindiVoices,
-  ...FonadaMarathiVoices,
+  ...FonadaTamilVoices,
   ...FonadaTeluguVoices,
 ];
 

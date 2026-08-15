@@ -194,6 +194,20 @@ CREATE TABLE IF NOT EXISTS public.newsletter_subscribers (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- 9. General User Settings & Dispatch Preferences Table
+CREATE TABLE IF NOT EXISTS public.user_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT UNIQUE NOT NULL,
+  email_on_render_complete BOOLEAN NOT NULL DEFAULT TRUE,
+  email_daily_summary BOOLEAN NOT NULL DEFAULT TRUE,
+  alert_on_token_expiry BOOLEAN NOT NULL DEFAULT TRUE,
+  auto_publish_default BOOLEAN NOT NULL DEFAULT TRUE,
+  default_privacy TEXT NOT NULL DEFAULT 'public',
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
@@ -204,6 +218,7 @@ ALTER TABLE public.reels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.channels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 
 -- Idempotent RLS Policies (Allow access for server actions and client APIs)
 DO $$ BEGIN
@@ -233,6 +248,11 @@ END $$;
 
 DO $$ BEGIN
   CREATE POLICY "Allow public access on newsletter_subscribers" ON public.newsletter_subscribers FOR ALL USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Allow public access on user_settings" ON public.user_settings FOR ALL USING (true) WITH CHECK (true);
 EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 

@@ -24,33 +24,57 @@ import {
   VideoStyles,
   DeepgramEnglishVoices,
   FonadaHindiVoices,
-  FonadaMarathiVoices,
+  FonadaTamilVoices,
   FonadaTeluguVoices,
   DeepgramSpanishVoices,
   DeepgramGermanVoices,
 } from "@/components/dashboard/create/constants";
 import { CAPTION_STYLES } from "@/components/dashboard/create/caption-styles";
 import { getSeriesById, SeriesItem } from "@/app/actions/series";
+import { getUserSubscriptionInfo, UserSubscriptionInfo } from "@/app/actions/billing";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 
 const ALL_VOICES = [
   ...DeepgramEnglishVoices,
   ...DeepgramSpanishVoices,
   ...DeepgramGermanVoices,
   ...FonadaHindiVoices,
-  ...FonadaMarathiVoices,
+  ...FonadaTamilVoices,
   ...FonadaTeluguVoices,
 ];
 
 function CreateSeriesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editSeriesId = searchParams.get("edit") || searchParams.get("seriesId");
+  const editSeriesId =
+    searchParams.get("editSeriesId") ||
+    searchParams.get("edit") ||
+    searchParams.get("seriesId");
   const isEditing = Boolean(editSeriesId);
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isLoadingSeries, setIsLoadingSeries] = useState<boolean>(Boolean(editSeriesId));
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Plan limits & upgrade modal state
+  const [subInfo, setSubInfo] = useState<UserSubscriptionInfo | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const info = await getUserSubscriptionInfo();
+        setSubInfo(info);
+        if (!isEditing && !info.canCreateSeries) {
+          setUpgradeModalOpen(true);
+        }
+      } catch (err) {
+        console.warn("Could not check subscription limits:", err);
+      }
+    }
+    checkSubscription();
+  }, [isEditing]);
 
   const [formData, setFormData] = useState<{
     niche?: NicheData;
@@ -256,12 +280,16 @@ function CreateSeriesContent() {
           window.location.href = "/dashboard";
         }, 800);
       } else {
-        alert(res.error || "Failed to save series. Please try again.");
+        if (res?.limitReached) {
+          setUpgradeModalOpen(true);
+        } else {
+          alert(res?.error || "Failed to save series. Please try again.");
+        }
         setIsSubmitting(false);
       }
     } catch (err) {
       console.error("Error submitting series via /api/series:", err);
-      window.location.href = "/dashboard";
+      setIsSubmitting(false);
     }
   };
 
@@ -411,6 +439,15 @@ function CreateSeriesContent() {
           />
         )}
       </div>
+
+      {/* Upgrade Plan Modal */}
+      <UpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        reason="series_limit"
+        currentPlan={subInfo?.planKey || "free"}
+        recommendedPlan={subInfo?.planKey === "basic" ? "unlimited" : "basic"}
+      />
     </div>
   );
 }

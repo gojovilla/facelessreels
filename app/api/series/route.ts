@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser, auth } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
+import { inngest } from "@/inngest/client";
+import { getPlanLimits, canCreateMoreSeries, isPlatformAllowed } from "@/lib/plan-limits";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -59,6 +61,37 @@ export async function POST(req: NextRequest) {
     }
 
     const userIdentifier = userId || user?.id || user?.emailAddresses?.[0]?.emailAddress || "anonymous";
+
+    // Enforce Plan Limits for new series creation
+    const userPlanKey =
+      (user?.publicMetadata?.plan as string) ||
+      (user?.unsafeMetadata?.plan as string) ||
+      "free";
+    const plan = getPlanLimits(userPlanKey);
+
+    const { count: currentSeriesCount } = await supabase
+      .from("series")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userIdentifier);
+
+    if (!canCreateMoreSeries(currentSeriesCount || 0, plan.id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Series limit reached (${currentSeriesCount}/${plan.maxSeries}). Your ${plan.name} plan allows up to ${plan.maxSeries} series. Please upgrade your plan.`,
+          limitReached: true,
+          currentPlan: plan.id,
+          maxSeries: plan.maxSeries,
+          currentSeriesCount,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Filter channels based on plan permissions (e.g. Free/Basic only allowed YouTube & Email)
+    const requestedChannels = Array.isArray(channels) && channels.length > 0 ? channels : ["youtube"];
+    const allowedChannels = requestedChannels.filter((ch: string) => isPlatformAllowed(ch, plan.id));
+    const finalChannels = allowedChannels.length > 0 ? allowedChannels : ["youtube"];
 
     const seriesData = {
       user_id: userIdentifier,
@@ -231,6 +264,20 @@ export async function PUT(req: NextRequest) {
         message: "Series updated successfully",
         series: { id, ...payload },
       });
+    }
+
+    try {
+      await inngest.send({
+        name: "series/schedule.cron.check",
+        data: {
+          triggeredBy: "series_updated_via_api",
+          seriesId: id,
+          publishTime: payload.publish_time,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (inngestErr) {
+      console.warn("Inngest trigger notice:", inngestErr);
     }
 
     return NextResponse.json({

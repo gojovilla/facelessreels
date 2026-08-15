@@ -7,6 +7,7 @@ import path from "path";
 import { renderRemotionVideo, RenderVideoResult } from "@/lib/remotion-lambda";
 import { MainVideoReelProps } from "@/remotion/types";
 import { sendVideoReadyEmail, resolveUserEmail } from "@/lib/plunk";
+import { dispatchAllConfiguredPlatforms } from "@/lib/publishers";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -249,7 +250,52 @@ async function generateDeepgramAudio(
   };
 }
 
-// FonadaLabs Indian Languages Text-To-Speech Generator (https://fonadalabs.ai/docs/text-to-speech)
+// Helper: Resolve clean voice and language for FonadaLabs TTS
+function resolveFonadaParams(
+  voiceName: string,
+  languageName: string
+): { voice: string; language: "Hindi" | "Tamil" | "Telugu" | "English" } {
+  const langLower = (languageName || "").toLowerCase();
+  let lang: "Hindi" | "Tamil" | "Telugu" | "English" = "Hindi";
+  if (langLower.includes("tamil") || langLower.includes("ta")) lang = "Tamil";
+  else if (langLower.includes("telugu") || langLower.includes("te")) lang = "Telugu";
+  else if (langLower.includes("english") || langLower.includes("en")) lang = "English";
+  else lang = "Hindi";
+
+  // Official available voices per language on Fonada API
+  const validVoices: Record<string, string[]> = {
+    Hindi: [
+      "Dhruv", "Vaanee", "Swastik", "Laksh", "Raag", "Sarvagya", "Komal", "Meghra",
+      "Pancham", "Tara", "Sharad", "Kritika", "Mandra", "Karn", "Gauri", "Ruhi", "Roshini", "Parikshit"
+    ],
+    Tamil: [
+      "Vaani", "Isai", "Thalam", "Swaram", "Madhuri", "Naadham", "Rachna", "Pallavi",
+      "Mrityunjay", "Malika", "Yamini", "Tilak", "Dhruv", "Sanket", "Rudraksh"
+    ],
+    Telugu: [
+      "Dhruv", "Ansh", "Aadhira", "Aahana", "Aakriti", "Ridhima", "Vaani", "Shaury",
+      "Bhavyaa", "Tanuj", "Utkarsh", "Priya", "Tara", "Divya"
+    ],
+    English: [
+      "Dhruv", "Vaanee", "Swastik", "Laksh", "Raag", "Sarvagya", "Tara", "Ruhi"
+    ],
+  };
+
+  // Strip prefixes like "fonada-", "-hi", "-ta", "-te"
+  const cleanInput = voiceName
+    .replace(/^fonada-/i, "")
+    .replace(/-(hi|ta|te|en|mr|in)$/i, "")
+    .trim();
+
+  const matched = validVoices[lang].find((v) => v.toLowerCase() === cleanInput.toLowerCase());
+
+  return {
+    language: lang,
+    voice: matched || validVoices[lang][0] || "Dhruv",
+  };
+}
+
+// FonadaLabs Indian Languages Text-To-Speech Generator (https://api.fonada.ai/tts/generate-audio-large)
 async function generateFonadaAudio(
   text: string,
   voiceName: string,
@@ -257,104 +303,86 @@ async function generateFonadaAudio(
   seriesId: string
 ): Promise<{ audioUrl: string; storagePath?: string; durationSeconds: number; format: string }> {
   const apiKey = process.env.FONADA_API_KEY || process.env.FONADALABS_API_KEY;
-  const cleanVoice = voiceName.replace(/^fonada-|-.*$/gi, "").trim() || "Rohit";
-  const cleanLanguage = languageName || "Hindi";
+  const { voice: cleanVoice, language: cleanLanguage } = resolveFonadaParams(voiceName, languageName);
   const estimatedDuration = Math.max(30, Math.round(text.split(/\s+/).length / 2.5));
-  const filename = `fonada-${seriesId}-${Date.now()}.mp3`;
+  const filename = `fonada-${seriesId}-${Date.now()}.wav`;
 
-  if (apiKey && apiKey.trim().length > 0 && !apiKey.includes("placeholder")) {
-    try {
-      const endpoint = "https://api.fonadalabs.ai/v1/tts/synthesize";
-      const response = await fetch(endpoint, {
+  if (!apiKey || apiKey.trim().length === 0 || apiKey.includes("placeholder")) {
+    throw new Error("FONADA_API_KEY is missing in environment variables.");
+  }
+
+  try {
+    const endpoint = "https://api.fonada.ai/tts/generate-audio-large";
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey.trim()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: text,
+        voice: cleanVoice,
+        language: cleanLanguage,
+      }),
+    });
+
+    let audioBuffer: Buffer | null = null;
+
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer();
+      audioBuffer = Buffer.from(arrayBuffer);
+    } else {
+      const errBody = await response.text().catch(() => "");
+      console.warn(
+        `[FonadaLabs TTS] Synthesis failed for voice "${cleanVoice}" (${cleanLanguage}): ${errBody}. Retrying with default voice "Dhruv"...`
+      );
+
+      // Auto-retry with default "Dhruv" voice if custom voice fails
+      const retryResponse = await fetch(endpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey.trim()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           input: text,
-          voice: cleanVoice,
+          voice: "Dhruv",
           language: cleanLanguage,
         }),
       });
 
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        const localAudioDir = path.join(process.cwd(), "public", "audio");
-        await ensureDirExists(localAudioDir);
-        const filePath = path.join(localAudioDir, filename);
-
-        let audioBuffer: Buffer | null = null;
-
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          if (json.audio_base64 || json.base64) {
-            audioBuffer = Buffer.from(json.audio_base64 || json.base64, "base64");
-          } else if (json.audioUrl || json.url) {
-            const audioFetch = await fetch(json.audioUrl || json.url);
-            const arrayBuf = await audioFetch.arrayBuffer();
-            audioBuffer = Buffer.from(arrayBuf);
-          }
-        } else {
-          const arrayBuffer = await response.arrayBuffer();
-          audioBuffer = Buffer.from(arrayBuffer);
-        }
-
-        if (audioBuffer) {
-          await fs.promises.writeFile(filePath, audioBuffer);
-          const supabaseResult = await uploadVoiceoverToSupabase(audioBuffer, filename, seriesId);
-
-          return {
-            audioUrl: supabaseResult?.publicUrl || `/audio/${filename}`,
-            storagePath: supabaseResult?.storagePath,
-            durationSeconds: estimatedDuration,
-            format: "mp3",
-          };
-        }
-        const errText = await response.text().catch(() => "");
-        const fallbackEndpoint = "https://api.fonada.ai/tts/generate-audio-large";
-        const fbResponse = await fetch(fallbackEndpoint, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            input: text,
-            voice: cleanVoice,
-            language: cleanLanguage,
-          }),
-        });
-
-        if (fbResponse.ok) {
-          const arrayBuffer = await fbResponse.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const localAudioDir = path.join(process.cwd(), "public", "audio");
-          await ensureDirExists(localAudioDir);
-          const filePath = path.join(localAudioDir, filename);
-          await fs.promises.writeFile(filePath, buffer);
-
-          const supabaseResult = await uploadVoiceoverToSupabase(buffer, filename, seriesId);
-
-          return {
-            audioUrl: supabaseResult?.publicUrl || `/audio/${filename}`,
-            storagePath: supabaseResult?.storagePath,
-            durationSeconds: estimatedDuration,
-            format: "mp3",
-          };
-        }
-
-        const fbErr = await fbResponse.text().catch(() => "");
+      if (retryResponse.ok) {
+        const arrayBuffer = await retryResponse.arrayBuffer();
+        audioBuffer = Buffer.from(arrayBuffer);
+      } else {
+        const retryErr = await retryResponse.text().catch(() => "");
         throw new Error(
-          `FonadaLabs TTS API failed. Primary: ${errText}, Fallback: ${fbErr}`
+          `FonadaLabs TTS API returned HTTP error for ${cleanLanguage}: ${errBody || retryErr}`
         );
       }
-    } catch (err: any) {
-      throw new Error(`FonadaLabs TTS synthesis failed: ${err?.message}`);
     }
-  }
 
-  throw new Error("FONADA_API_KEY is missing in environment variables.");
+    if (!audioBuffer || audioBuffer.length === 0) {
+      throw new Error("FonadaLabs TTS returned empty audio payload.");
+    }
+
+    // Save audio file locally and upload to Supabase
+    const localAudioDir = path.join(process.cwd(), "public", "audio");
+    await ensureDirExists(localAudioDir);
+    const filePath = path.join(localAudioDir, filename);
+    await fs.promises.writeFile(filePath, audioBuffer);
+
+    const supabaseResult = await uploadVoiceoverToSupabase(audioBuffer, filename, seriesId);
+
+    return {
+      audioUrl: supabaseResult?.publicUrl || `/audio/${filename}`,
+      storagePath: supabaseResult?.storagePath,
+      durationSeconds: estimatedDuration,
+      format: "wav",
+    };
+  } catch (err: any) {
+    throw new Error(`FonadaLabs TTS synthesis failed: ${err?.message}`);
+  }
 }
 
 // Deepgram Speech-to-Text Caption & Word-level Timestamp Generator
@@ -362,14 +390,25 @@ async function generateDeepgramCaptions(
   audioUrl: string,
   scriptText: string,
   wordsPerBatch: number,
-  durationSeconds: number
+  durationSeconds: number,
+  languageCode?: string
 ): Promise<{ words: SubtitleWord[]; batches: SubtitleBatch[]; transcript: string }> {
   const apiKey = process.env.DEEPGRAM_API_KEY;
 
+  let langParam = "detect_language=true";
+  if (languageCode) {
+    const l = languageCode.toLowerCase();
+    if (l.startsWith("hi")) langParam = "language=hi";
+    else if (l.startsWith("ta")) langParam = "language=ta";
+    else if (l.startsWith("te")) langParam = "language=te";
+    else if (l.startsWith("es")) langParam = "language=es";
+    else if (l.startsWith("de")) langParam = "language=de";
+    else if (l.startsWith("en")) langParam = "language=en";
+  }
+
   if (apiKey && apiKey.trim().length > 0 && !apiKey.includes("placeholder")) {
     try {
-      const endpoint =
-        "https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&punctuate=true&utterances=true";
+      const endpoint = `https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&punctuate=true&utterances=true&${langParam}`;
       let response: Response;
 
       if (audioUrl.startsWith("http://") || audioUrl.startsWith("https://")) {
@@ -492,7 +531,74 @@ function getStylePromptModifier(styleIdOrName?: string | null): string {
   return "hyper-realistic cinematic movie still, 8k resolution, volumetric lighting, photorealistic, 35mm film grain, masterclass cinematography, highly detailed";
 }
 
-// Scene Image Generator (Using Gemini AI API & Neural Image Synthesis)
+/**
+ * Resolves background music track from series metadata, uploads track to Supabase Storage,
+ * and returns a guaranteed public HTTPS URL for Remotion video rendering.
+ */
+async function resolveBackgroundMusicUrl(
+  bgMusicText?: string | null,
+  bgMusicTracks?: string[] | null,
+  seriesId?: string
+): Promise<string | undefined> {
+  if (!bgMusicText && (!bgMusicTracks || bgMusicTracks.length === 0)) {
+    return undefined;
+  }
+
+  // 1. Direct HTTP URL
+  if (bgMusicText && (bgMusicText.startsWith("http://") || bgMusicText.startsWith("https://"))) {
+    return bgMusicText;
+  }
+
+  // 2. Identify track file name from series metadata
+  let trackFileName = "dark-suspense-drone.mp3";
+  const raw = `${bgMusicText || ""} ${(bgMusicTracks || []).join(" ")}`.toLowerCase();
+
+  if (raw.includes("cyberpunk") || raw.includes("neon")) {
+    trackFileName = "cyberpunk-neon-drive.mp3";
+  } else if (raw.includes("lofi") || raw.includes("chill") || raw.includes("midnight")) {
+    trackFileName = "lofi-midnight-chill.mp3";
+  } else if (raw.includes("phonk") || raw.includes("drift") || raw.includes("aggressive")) {
+    trackFileName = "aggressive-drift-phonk.mp3";
+  } else if (raw.includes("epic") || raw.includes("orchestra") || raw.includes("cinematic")) {
+    trackFileName = "epic-cinematic-orchestra.mp3";
+  } else if (raw.includes("titan") || raw.includes("motivational") || raw.includes("rise")) {
+    trackFileName = "titan-motivational-rise.mp3";
+  } else if (raw.includes("dark") || raw.includes("suspense") || raw.includes("shadow")) {
+    trackFileName = "dark-suspense-drone.mp3";
+  }
+
+  // 3. Upload track to Supabase Storage bucket 'audio' if not present, to ensure a public HTTPS URL
+  try {
+    const localMusicPath = path.join(process.cwd(), "public", "backgroundmusic", trackFileName);
+    if (fs.existsSync(localMusicPath)) {
+      const musicBuffer = await fs.promises.readFile(localMusicPath);
+      const storagePath = `bg-music/${trackFileName}`;
+
+      await supabase.storage
+        .from("audio")
+        .upload(storagePath, musicBuffer, {
+          contentType: "audio/mpeg",
+          upsert: true,
+        });
+
+      const { data: publicUrlData } = supabase.storage
+        .from("audio")
+        .getPublicUrl(storagePath);
+
+      if (publicUrlData?.publicUrl) {
+        console.log(`[Music Resolver] 🎵 Resolved background music CDN URL: ${publicUrlData.publicUrl} (Track: ${trackFileName})`);
+        return publicUrlData.publicUrl;
+      }
+    }
+  } catch (err: any) {
+    console.warn("[Music Resolver] Supabase background music sync notice:", err?.message);
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return `${appUrl}/backgroundmusic/${trackFileName}`;
+}
+
+// Scene Image Generator (Using OpenAI ChatGPT DALL-E 3 HD 4K & Replicate / Neural AI Image Synthesis)
 async function generateSceneImage(
   prompt: string,
   sceneIndex: number,
@@ -512,41 +618,120 @@ async function generateSceneImage(
     : `${prompt}, ${finalStyle}`;
 
   let buffer: Buffer | null = null;
+  let generatorUsed = "none";
 
-  // 1. Try Gemini API Image Generation via @google/genai
-  const gemini = getGeminiClient();
-  if (gemini) {
-    const candidateModels = [
-      "gemini-2.5-flash-image",
-      "gemini-3.1-flash-image",
-      "gemini-3.1-flash-lite-image",
-      "gemini-3-pro-image",
-    ];
+  // 1. Primary: OpenAI ChatGPT DALL-E 3 HD (https://platform.openai.com)
+  const openaiApiKey = process.env.OPENAI_API_KEY?.trim();
+  const imageQuality = process.env.IMAGE_QUALITY === "standard" ? "standard" : "hd";
 
-    for (const model of candidateModels) {
-      try {
-        const response = await gemini.models.generateContent({
-          model,
-          contents: `Generate a vertical 9:16 portrait image for video scene: ${enrichedPrompt}. 9:16 vertical aspect ratio, ultra detailed.`,
+  if (openaiApiKey && openaiApiKey.length > 10 && !openaiApiKey.includes("placeholder")) {
+    console.log(`[Image Generator] 🎨 Generating Scene #${sceneIndex} using OpenAI DALL-E 3 (${imageQuality.toUpperCase()} 4K Quality)...`);
+    try {
+      // DALL-E 3 supports 1024x1792 (perfect 9:16 vertical aspect ratio for Shorts / Reels)
+      const openaiRes = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openaiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "dall-e-3",
+          prompt: `9:16 vertical portrait aspect ratio. Masterpiece cinematic photography, ultra high resolution 4K, photorealistic details, volumetric lighting, cinematic masterpiece: ${enrichedPrompt.slice(0, 3800)}`,
+          n: 1,
+          size: "1024x1792",
+          quality: imageQuality,
+          response_format: "b64_json",
+        }),
+      });
+
+      if (openaiRes.ok) {
+        const data = await openaiRes.json();
+        const b64 = data?.data?.[0]?.b64_json;
+        if (b64) {
+          buffer = Buffer.from(b64, "base64");
+          generatorUsed = `openai-dalle-3-${imageQuality}`;
+          console.log(`[Image Generator] ✅ Scene #${sceneIndex} successfully generated with OpenAI DALL-E 3 HD (4K Quality)!`);
+        }
+      } else {
+        const errText = await openaiRes.text();
+        console.warn(`[Image Generator] OpenAI DALL-E 3 returned status ${openaiRes.status}:`, errText);
+
+        // Fallback to DALL-E 2 if DALL-E 3 fails
+        console.log(`[Image Generator] Trying OpenAI DALL-E 2 fallback for Scene #${sceneIndex}...`);
+        const dalle2Res = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openaiApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "dall-e-2",
+            prompt: `Vertical portrait scene: ${enrichedPrompt.slice(0, 950)}`,
+            n: 1,
+            size: "1024x1024",
+            response_format: "b64_json",
+          }),
         });
 
-        const parts = response.candidates?.[0]?.content?.parts || [];
-        for (const part of parts) {
-          if (part.inlineData && part.inlineData.data) {
-            buffer = Buffer.from(part.inlineData.data, "base64");
-            break;
+        if (dalle2Res.ok) {
+          const d2Data = await dalle2Res.json();
+          const d2B64 = d2Data?.data?.[0]?.b64_json;
+          if (d2B64) {
+            buffer = Buffer.from(d2B64, "base64");
+            generatorUsed = "openai-dalle-2";
+            console.log(`[Image Generator] ✅ Scene #${sceneIndex} generated with OpenAI DALL-E 2!`);
           }
         }
-        if (buffer) break;
-      } catch (err: any) {
-        // Continue to next candidate or fallback
       }
+    } catch (openaiErr: any) {
+      console.warn(`[Image Generator] OpenAI API exception for Scene #${sceneIndex}:`, openaiErr?.message);
     }
   }
 
-  // 2. High-Resolution 9:16 Neural AI Image Synthesis (from exact Gemini Scene Prompt)
+  // 2. Secondary: Replicate SDXL Lightning 9:16 (if configured)
+  const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
+  if (!buffer && replicateToken && replicateToken.length > 5 && !replicateToken.includes("placeholder")) {
+    try {
+      console.log(`[Image Generator] Generating Scene #${sceneIndex} using Replicate SDXL Lightning...`);
+      const repRes = await fetch("https://api.replicate.com/v1/models/bytedance/sdxl-lightning-4step/predictions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${replicateToken}`,
+          "Content-Type": "application/json",
+          Prefer: "wait",
+        },
+        body: JSON.stringify({
+          input: {
+            prompt: `${enrichedPrompt}, 9:16 vertical portrait, highly detailed`,
+            width: 720,
+            height: 1280,
+            num_outputs: 1,
+          },
+        }),
+      });
+
+      if (repRes.ok) {
+        const repData = await repRes.json();
+        const outputUrl = Array.isArray(repData.output) ? repData.output[0] : repData.output;
+        if (outputUrl && typeof outputUrl === "string") {
+          const imgFetch = await fetch(outputUrl);
+          if (imgFetch.ok) {
+            const ab = await imgFetch.arrayBuffer();
+            buffer = Buffer.from(ab);
+            generatorUsed = "replicate-sdxl";
+            console.log(`[Image Generator] ✅ Scene #${sceneIndex} generated with Replicate SDXL!`);
+          }
+        }
+      }
+    } catch (repErr: any) {
+      console.warn(`[Image Generator] Replicate generation notice:`, repErr?.message);
+    }
+  }
+
+  // 3. Tertiary: High-Resolution 9:16 Neural AI Image Synthesis
   if (!buffer) {
     try {
+      console.log(`[Image Generator] Generating Scene #${sceneIndex} using Neural AI Image Synthesis...`);
       const seed = Math.floor(Math.random() * 1000000);
       const encodedPrompt = encodeURIComponent(
         `${enrichedPrompt}, 9:16 vertical portrait aspect ratio`
@@ -557,6 +742,7 @@ async function generateSceneImage(
       if (res.ok) {
         const ab = await res.arrayBuffer();
         buffer = Buffer.from(ab);
+        generatorUsed = "neural-ai-synthesis";
       }
     } catch (err: any) {
       console.warn("AI scene image synthesis fetch failed:", err?.message);
@@ -565,14 +751,14 @@ async function generateSceneImage(
 
   if (!buffer) {
     throw new Error(
-      `Failed to generate image for Scene #${sceneIndex} using Gemini / AI Synthesis.`
+      `Failed to generate image for Scene #${sceneIndex}. Please ensure your OPENAI_API_KEY is configured in .env.local (from https://platform.openai.com/api-keys).`
     );
   }
 
-  // 3. Save local copy to public/generated-images/
+  // Save local copy to public/generated-images/
   await fs.promises.writeFile(localPath, buffer);
 
-  // 4. Upload directly to Supabase Storage bucket 'images'
+  // Upload directly to Supabase Storage bucket 'images'
   const supabaseResult = await uploadImageToSupabase(buffer, filename, seriesId);
 
   return {
@@ -779,7 +965,7 @@ Return ONLY a valid JSON object matching this schema:
 
       const isFonada =
         voiceId.includes("fonada") ||
-        ["Hindi", "Marathi", "Telugu"].includes(language);
+        ["Hindi", "Tamil", "Telugu"].some((l) => language.toLowerCase().includes(l.toLowerCase()));
 
       let ttsResult: {
         audioUrl: string;
@@ -830,7 +1016,8 @@ Return ONLY a valid JSON object matching this schema:
         audioData.audioUrl,
         scriptData.script,
         wordsPerBatch,
-        audioData.durationSeconds || scriptData.targetDurationSeconds
+        audioData.durationSeconds || scriptData.targetDurationSeconds,
+        seriesData.language_code || seriesData.language
       );
 
       return {
@@ -889,7 +1076,7 @@ Return ONLY a valid JSON object matching this schema:
         totalImages: imageUrls.length,
         imageUrls,
         generatedScenes: processedScenes,
-        modelUsed: "gemini-imagen-synthesis",
+        modelUsed: "openai-dalle-synthesis",
         generatedAt: new Date().toISOString(),
       };
     });
@@ -898,6 +1085,16 @@ Return ONLY a valid JSON object matching this schema:
     // STEP 6: Create Remotion Video Composition & Render MP4 via AWS Lambda
     // =========================================================================
     const remotionVideoData = await step.run("create-remotion-video", async (): Promise<RenderVideoResult> => {
+      // Resolve background music track to public HTTPS CDN URL
+      const resolvedBgMusicUrl = await resolveBackgroundMusicUrl(
+        seriesData.bg_music,
+        seriesData.bg_music_tracks,
+        seriesData.id
+      );
+      const bgMusicVolume = (seriesData.bg_music_volume ?? 22) / 100;
+
+      console.log(`[Remotion Video Composition] 🎬 Rendering video with ${imagesData.imageUrls.length} scenes, Voice: "${audioData.voiceName}", Music: "${seriesData.bg_music || "None"}" (${resolvedBgMusicUrl ? "Active @ " + Math.round(bgMusicVolume * 100) + "% vol" : "Disabled"})`);
+
       const compositionProps: MainVideoReelProps = {
         title: scriptData.videoTitle,
         scenes: imagesData.generatedScenes.map((s) => ({
@@ -909,8 +1106,8 @@ Return ONLY a valid JSON object matching this schema:
         })),
         imageUrls: imagesData.imageUrls,
         audioUrl: audioData.audioUrl,
-        bgMusicUrl: seriesData.bg_music && seriesData.bg_music.startsWith("http") ? seriesData.bg_music : undefined,
-        bgMusicVolume: (seriesData.bg_music_volume ?? 22) / 100,
+        bgMusicUrl: resolvedBgMusicUrl,
+        bgMusicVolume,
         subtitles: captionData.subtitles,
         captionStyleId: captionData.captionStyleId,
         captionStyleName: captionData.captionStyle,
@@ -956,6 +1153,15 @@ Return ONLY a valid JSON object matching this schema:
         scenes: imagesData.generatedScenes,
         subtitles: captionData.subtitles,
         image_prompts: scriptData.imagePrompts,
+        metadata: {
+          image_provider: "openai-dalle-3-hd",
+          image_quality: process.env.IMAGE_QUALITY || "hd",
+          script_provider: "google-gemini",
+          voice_provider: audioData.provider,
+          bg_music_track: seriesData.bg_music,
+          bg_music_volume: seriesData.bg_music_volume ?? 22,
+          caption_style: captionData.captionStyle,
+        },
       };
 
       let savedReel: any = null;
@@ -1070,54 +1276,119 @@ Return ONLY a valid JSON object matching this schema:
     });
 
     // =========================================================================
-    // STEP 8: Send Email Notification to User via Plunk
+    // STEP 8: Sleep/Wait Until Exact Scheduled Publish Time (or Immediate for Test Execution)
     // =========================================================================
-    const emailResult = await step.run("send-email-notification-plunk", async () => {
-      const targetUserId = userId || seriesData.user_id;
-      const { email: recipientEmail, name: recipientName } = await resolveUserEmail(
-        targetUserId,
-        (event.data as any)?.userEmail
-      );
+    const scheduleWaitResult = await step.run("wait-for-publish-schedule", async () => {
+      const isImmediate = (event.data as any)?.immediateDispatch === true;
+      const targetPublishIso = (event.data as any)?.targetPublishTime;
 
-      if (!recipientEmail) {
-        console.warn("[Inngest Step 8] No user email found to send notification. User ID:", targetUserId);
-        return {
-          emailSent: false,
-          reason: "No user email resolved",
-          userId: targetUserId,
-        };
+      let publishDate: Date;
+      if (targetPublishIso) {
+        publishDate = new Date(targetPublishIso);
+      } else {
+        // Calculate today's publish time from series publish_time (supports 24h & 12h)
+        const [pubHours, pubMins] = parsePublishTimeToHoursMinutes(seriesData.publish_time);
+
+        const now = new Date();
+        publishDate = new Date(now);
+        publishDate.setHours(pubHours, pubMins, 0, 0);
+
+        // If today's publish time has already passed by more than 10 minutes and not immediate, schedule for tomorrow
+        if (publishDate.getTime() < now.getTime() - 10 * 60 * 1000 && !isImmediate) {
+          publishDate.setDate(publishDate.getDate() + 1);
+        }
       }
 
-      const emailPayload = {
-        to: recipientEmail,
-        recipientName: recipientName || "Creator",
+      const msUntilPublish = publishDate.getTime() - Date.now();
+
+      return {
+        isImmediate,
+        publishTime: seriesData.publish_time || "18:30",
+        publishDate: publishDate.toISOString(),
+        msUntilPublish,
+        shouldSleep: !isImmediate && msUntilPublish > 10000,
+      };
+    });
+
+    // Sleep until exact publish time if needed (e.g. video was pre-generated 2 hours early)
+    if (scheduleWaitResult.shouldSleep) {
+      console.log(
+        `[Inngest Scheduler] Pre-generated reel 2 hours early. Sleeping until exact publish time: ${scheduleWaitResult.publishDate}`
+      );
+      await step.sleepUntil("wait-until-scheduled-publish-time", new Date(scheduleWaitResult.publishDate));
+    }
+
+    // =========================================================================
+    // STEP 9: Dispatch to Configured Platforms (Email, YouTube, Instagram, TikTok)
+    // =========================================================================
+    const dispatchResults = await step.run("dispatch-to-all-configured-platforms", async () => {
+      const targetUserId = userId || seriesData.user_id;
+      const configuredChannels =
+        seriesData.channels && Array.isArray(seriesData.channels) && seriesData.channels.length > 0
+          ? seriesData.channels
+          : ["email", "youtube", "instagram", "tiktok"];
+
+      const publishPayload = {
+        reelId: savedResult.reelId || reelId,
+        seriesId: seriesData.id,
+        userId: targetUserId,
+        userEmail: (event.data as any)?.userEmail,
         videoTitle: scriptData.videoTitle,
         seriesTitle: seriesData.title,
         niche: seriesData.niche,
         hook: scriptData.hook,
-        durationSeconds: audioData.durationSeconds || scriptData.targetDurationSeconds,
+        videoUrl: remotionVideoData.videoUrl || audioData.audioUrl,
         thumbnailUrl: imagesData.imageUrls[0],
-        videoUrl: remotionVideoData.videoUrl,
-        reelId: savedResult.reelId,
-        appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        durationSeconds: audioData.durationSeconds || scriptData.targetDurationSeconds,
         voiceName: audioData.voiceName,
         captionStyle: captionData.captionStyle,
+        targetChannels: configuredChannels,
       };
 
-      const result = await sendVideoReadyEmail(emailPayload);
+      const result = await dispatchAllConfiguredPlatforms(publishPayload);
+      return result;
+    });
+
+    // =========================================================================
+    // STEP 10: Mark Reel Published & Increment Series Stats in Supabase
+    // =========================================================================
+    const finalizationResult = await step.run("mark-reel-published-and-update-stats", async () => {
+      const targetReelId = savedResult.reelId || reelId;
+
+      // 1. Update reel status to 'published'
+      if (targetReelId) {
+        await supabase
+          .from("reels")
+          .update({
+            status: "published",
+            published_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", targetReelId);
+      }
+
+      // 2. Increment published_videos on series
+      await supabase
+        .from("series")
+        .update({
+          published_videos: (seriesData.published_videos || 0) + 1,
+          scheduled_videos: Math.max(0, (seriesData.scheduled_videos || 1) - 1),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", seriesData.id);
 
       return {
-        emailSent: result.success,
-        recipient: recipientEmail,
-        messageId: result.messageId,
-        simulated: result.simulated,
-        error: result.error,
+        reelId: targetReelId,
+        seriesId: seriesData.id,
+        status: "published",
+        publishedAt: new Date().toISOString(),
+        totalPublished: (seriesData.published_videos || 0) + 1,
       };
     });
 
     return {
       success: true,
-      message: "Video Reel generation, Remotion render, and Plunk email notification completed successfully!",
+      message: "Video Reel generated, scheduled, and dispatched to all configured platforms successfully!",
       seriesId: seriesData.id,
       series: seriesData,
       script: scriptData,
@@ -1126,8 +1397,154 @@ Return ONLY a valid JSON object matching this schema:
       images: imagesData,
       renderedVideo: remotionVideoData,
       saved: savedResult,
-      email: emailResult,
+      schedule: scheduleWaitResult,
+      dispatched: dispatchResults,
+      final: finalizationResult,
     };
   }
 );
+
+/**
+ * Helper to parse any publish_time format (24h "13:00", 12h "1:00 PM", "1pm", "09:30")
+ */
+export function parsePublishTimeToHoursMinutes(timeStr?: string | null): [number, number] {
+  if (!timeStr) return [18, 30]; // default 6:30 PM
+
+  const clean = timeStr.trim().toLowerCase();
+  const isPM = clean.includes("pm");
+  const isAM = clean.includes("am");
+
+  const digits = clean.replace(/[^0-9:]/g, "").split(":");
+  let hours = parseInt(digits[0], 10) || 0;
+  let minutes = digits.length > 1 ? parseInt(digits[1], 10) || 0 : 0;
+
+  if (isPM && hours < 12) {
+    hours += 12;
+  } else if (isAM && hours === 12) {
+    hours = 0;
+  }
+
+  hours = Math.max(0, Math.min(23, hours));
+  minutes = Math.max(0, Math.min(59, minutes));
+
+  return [hours, minutes];
+}
+
+// =============================================================================
+// 3. Daily Automated Background Cron Job (Runs every 15 mins to check active series)
+// Evaluates active series and triggers video generation 2 hours before publish time
+// =============================================================================
+export const scheduleDailySeriesPublisher = inngest.createFunction(
+  {
+    id: "schedule-daily-series-publisher",
+    name: "Schedule Daily Series Publisher",
+    triggers: [
+      { cron: "*/15 * * * *" }, // Runs every 15 minutes
+      { event: "series/schedule.cron.check" }, // Manual / real-time trigger support
+    ],
+  },
+  async ({ step }) => {
+    const scheduledDispatches = await step.run("evaluate-and-dispatch-active-series", async () => {
+      // 1. Fetch all active series
+      const { data: activeSeries, error } = await supabase
+        .from("series")
+        .select("*")
+        .eq("status", "active");
+
+      if (error || !activeSeries || activeSeries.length === 0) {
+        return {
+          totalEvaluated: 0,
+          dispatchedCount: 0,
+          message: "No active series currently scheduled.",
+        };
+      }
+
+      const now = new Date();
+      const dispatchedSeries: Array<{
+        seriesId: string;
+        title: string;
+        publishTime: string;
+        generationWindow: string;
+        targetPublishTime: string;
+      }> = [];
+
+      for (const series of activeSeries) {
+        try {
+          const [pubHours, pubMins] = parsePublishTimeToHoursMinutes(series.publish_time);
+
+          // Target publish time today
+          let targetPublish = new Date(now);
+          targetPublish.setHours(pubHours, pubMins, 0, 0);
+
+          // If today's publish time has already passed by more than 10 mins, target is tomorrow
+          const hasPassedToday = targetPublish.getTime() < now.getTime() - 10 * 60 * 1000;
+          if (hasPassedToday) {
+            targetPublish.setDate(targetPublish.getDate() + 1);
+          }
+
+          const msUntilPublish = targetPublish.getTime() - now.getTime();
+          // Generation is scheduled 2 hours (120 mins) before publish time
+          const msUntilGeneration = msUntilPublish - 2 * 60 * 60 * 1000;
+
+          // Generation is due if:
+          // 1. We are within 15 minutes before generation time OR already in the 2-hour pre-generation window
+          // 2. AND publish time is still in the future
+          const isGenerationDue = msUntilPublish > 0 && msUntilGeneration <= 15 * 60 * 1000;
+
+          if (isGenerationDue) {
+            // Check if a reel was already generated for this series in the last 18 hours
+            const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000).toISOString();
+            const { data: recentReels } = await supabase
+              .from("reels")
+              .select("id, created_at")
+              .eq("series_id", series.id)
+              .gte("created_at", eighteenHoursAgo)
+              .limit(1);
+
+            if (!recentReels || recentReels.length === 0) {
+              console.log(
+                `[Daily Cron Publisher] 🚀 Dispatched video generation for Series "${series.title}" (Publish time: ${series.publish_time || "18:30"}, Target: ${targetPublish.toISOString()})`
+              );
+
+              await inngest.send({
+                name: "video/generate.reel",
+                data: {
+                  seriesId: series.id,
+                  userId: series.user_id,
+                  targetPublishTime: targetPublish.toISOString(),
+                  immediateDispatch: false,
+                  scheduledByCron: true,
+                  triggeredAt: now.toISOString(),
+                },
+              });
+
+              dispatchedSeries.push({
+                seriesId: series.id,
+                title: series.title,
+                publishTime: series.publish_time || "18:30",
+                generationWindow: msUntilGeneration <= 0 ? "Within 2h publish window (immediate generate)" : "2 hours before publish",
+                targetPublishTime: targetPublish.toISOString(),
+              });
+            }
+          }
+        } catch (err: any) {
+          console.warn(`[Daily Cron Publisher] Error evaluating series ${series.id}:`, err?.message);
+        }
+      }
+
+      return {
+        totalEvaluated: activeSeries.length,
+        dispatchedCount: dispatchedSeries.length,
+        dispatchedSeries,
+        checkedAt: now.toISOString(),
+      };
+    });
+
+    return {
+      success: true,
+      result: scheduledDispatches,
+    };
+  }
+);
+
 

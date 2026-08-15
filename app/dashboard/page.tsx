@@ -29,6 +29,7 @@ import {
   X,
   Check,
   Globe,
+  Send,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
@@ -39,6 +40,7 @@ import {
   deleteSeries,
   editSeriesDetails,
   triggerReelGeneration,
+  executeSeriesWorkflow,
 } from "@/app/actions/series";
 
 // Map visual_style_id or name to the corresponding 9:16 asset in public/video-style/
@@ -113,6 +115,7 @@ export default function DashboardSeriesPage() {
 
   // Generating reel state
   const [generatingSeriesId, setGeneratingSeriesId] = useState<string | null>(null);
+  const [executingWorkflowId, setExecutingWorkflowId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fetchSeries = async () => {
@@ -200,15 +203,24 @@ export default function DashboardSeriesPage() {
   const handleOpenEdit = (series: SeriesItem, e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveMenuSeriesId(null);
-    router.push(`/dashboard/create?edit=${series.id}`);
+    router.push(`/dashboard/create?editSeriesId=${series.id}`);
+  };
+
+  // Action: Quick Edit Publish Time / Title Inline
+  const handleOpenQuickEditModal = (series: SeriesItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenuSeriesId(null);
+    setEditingSeries(series);
+    setEditTitle(series.title);
+    setEditPublishTime(series.publish_time || "18:30");
   };
 
   // Action: Save Edit
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSeries) return;
-
     setIsSavingEdit(true);
+
     const res = await editSeriesDetails(editingSeries.id, {
       title: editTitle,
       publish_time: editPublishTime,
@@ -219,17 +231,17 @@ export default function DashboardSeriesPage() {
         prev.map((s) =>
           s.id === editingSeries.id
             ? {
-                ...s,
-                title: editTitle,
-                publish_time: editPublishTime,
-                frequency: `Daily @ ${editPublishTime}`,
-              }
+              ...s,
+              title: editTitle,
+              publish_time: editPublishTime,
+              frequency: `Daily @ ${editPublishTime}`,
+            }
             : s
         )
       );
-      setToastMessage("Series details updated successfully!");
-      setEditingSeries(null);
+      setToastMessage("Series updated successfully.");
       setTimeout(() => setToastMessage(null), 3000);
+      setEditingSeries(null);
     } else {
       alert("Failed to save changes.");
     }
@@ -252,6 +264,27 @@ export default function DashboardSeriesPage() {
     } catch (err) {
       console.error(err);
       setGeneratingSeriesId(null);
+    }
+  };
+
+  // Action: Execute Full Scheduled Workflow (Generates video & dispatches to Email & Social Platforms)
+  const handleExecuteWorkflow = async (series: SeriesItem) => {
+    setExecutingWorkflowId(series.id);
+    try {
+      setToastMessage("⚡ Executing complete workflow: AI video generation, Plunk email & platform publishing...");
+      const res = await executeSeriesWorkflow(series.id, { immediatePublish: true });
+      if (res.success) {
+        setToastMessage("⚡ Workflow executed! Dispatched generation and multi-platform publishing.");
+        // Immediately navigate user to video library page
+        router.push(`/dashboard/videos?seriesId=${series.id}&generating=true`);
+      } else {
+        alert(res.message || "Failed to execute workflow");
+        setExecutingWorkflowId(null);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || "Failed to execute workflow");
+      setExecutingWorkflowId(null);
     }
   };
 
@@ -418,6 +451,7 @@ export default function DashboardSeriesPage() {
               const isMenuOpen = activeMenuSeriesId === series.id;
               const thumbnailSrc = getStyleThumbnail(series.visual_style_id, series.visual_style);
               const isGenerating = generatingSeriesId === series.id;
+              const isExecutingWorkflow = executingWorkflowId === series.id;
 
               return (
                 <div
@@ -445,16 +479,14 @@ export default function DashboardSeriesPage() {
                       </span>
 
                       <span
-                        className={`px-1.5 py-0.5 rounded-full text-[9px] font-semibold flex items-center gap-1 backdrop-blur-md border ${
-                          isPaused
-                            ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                            : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                        }`}
+                        className={`px-1.5 py-0.5 rounded-full text-[9px] font-semibold flex items-center gap-1 backdrop-blur-md border ${isPaused
+                          ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                          : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                          }`}
                       >
                         <span
-                          className={`w-1 h-1 rounded-full ${
-                            isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"
-                          }`}
+                          className={`w-1 h-1 rounded-full ${isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"
+                            }`}
                         />
                         {isPaused ? "Paused" : "Active"}
                       </span>
@@ -486,63 +518,61 @@ export default function DashboardSeriesPage() {
                   {/* MIDDLE: SERIES TITLE, CREATED DATE & 3-DOTS POPOVER */}
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-1.5 relative">
-                      <div className="space-y-0.5 min-w-0 flex-1">
-                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-200 transition-colors truncate">
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white tracking-tight line-clamp-1 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                           {series.title}
                         </h3>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5 text-slate-400 dark:text-slate-500" />
-                          <span>{formatDate(series.created_at)}</span>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {formatDate(series.created_at)}
                         </p>
                       </div>
 
-                      {/* 3-DOTS POPOVER BUTTON */}
-                      <div className="relative" onClick={(e) => e.stopPropagation()}>
+                      {/* 3-DOTS MENU TRIGGER */}
+                      <div className="relative">
                         <button
                           type="button"
-                          onClick={() =>
-                            setActiveMenuSeriesId(isMenuOpen ? null : series.id)
-                          }
-                          className="p-1 rounded-lg bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuSeriesId(isMenuOpen ? null : series.id);
+                          }}
+                          className="p-1 rounded-lg bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                         >
                           <MoreVertical className="w-3.5 h-3.5" />
                         </button>
 
-                        {/* POPOVER DROPDOWN MENU */}
+                        {/* POPOVER MENU */}
                         {isMenuOpen && (
-                          <div className="absolute right-0 top-8 w-40 rounded-xl bg-white dark:bg-[#121526] border border-slate-200 dark:border-white/15 shadow-2xl p-1 z-30 space-y-0.5 animate-fade-in backdrop-blur-xl">
-                            {/* Option 1: Edit */}
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-1.5 w-44 rounded-xl bg-white dark:bg-[#0f1220] border border-slate-200 dark:border-white/15 p-1.5 shadow-2xl z-30 space-y-1 animate-fade-in"
+                          >
                             <button
                               type="button"
                               onClick={(e) => handleOpenEdit(series, e)}
-                              className="w-full px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 transition-all flex items-center gap-2 cursor-pointer"
+                              className="w-full px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 dark:hover:bg-purple-500/20 hover:text-purple-600 dark:hover:text-purple-300 transition-all flex items-center gap-2 cursor-pointer"
                             >
-                              <Edit className="w-3 h-3 text-purple-500 dark:text-purple-400" />
-                              <span>Edit Series</span>
+                              <Sliders className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                              <span>Edit All Steps</span>
                             </button>
 
-                            {/* Option 2: Pause / Resume */}
                             <button
                               type="button"
                               onClick={(e) => handleToggleStatus(series, e)}
-                              className="w-full px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all flex items-center gap-2 cursor-pointer"
+                              className="w-full px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 dark:hover:bg-purple-500/20 hover:text-purple-600 dark:hover:text-purple-300 transition-all flex items-center gap-2 cursor-pointer"
                             >
                               {isPaused ? (
                                 <>
-                                  <Play className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
-                                  <span className="text-emerald-600 dark:text-emerald-300">Resume Series</span>
+                                  <Play className="w-3 h-3 text-emerald-500" />
+                                  <span>Resume Schedule</span>
                                 </>
                               ) : (
                                 <>
-                                  <Pause className="w-3 h-3 text-amber-500 dark:text-amber-400" />
-                                  <span className="text-amber-600 dark:text-amber-300">Pause Series</span>
+                                  <Pause className="w-3 h-3 text-amber-500" />
+                                  <span>Pause Schedule</span>
                                 </>
                               )}
                             </button>
 
-                            <div className="border-t border-slate-200 dark:border-white/10 my-0.5" />
-
-                            {/* Option 3: Delete */}
                             <button
                               type="button"
                               onClick={(e) => handleDelete(series.id, e)}
@@ -575,7 +605,7 @@ export default function DashboardSeriesPage() {
                     {/* Publishing Channel Badges */}
                     <div className="flex items-center justify-between pt-0.5">
                       <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium">
-                        Channels:
+                        Platforms:
                       </span>
                       <div className="flex items-center gap-1">
                         {(!series.channels || series.channels.includes("youtube")) && (
@@ -591,6 +621,11 @@ export default function DashboardSeriesPage() {
                         {(!series.channels || series.channels.includes("tiktok")) && (
                           <div className="p-1 rounded bg-cyan-500/10 dark:bg-cyan-500/15 text-cyan-600 dark:text-cyan-400" title="TikTok">
                             <TikTokIcon className="w-3 h-3" />
+                          </div>
+                        )}
+                        {(!series.channels || series.channels.includes("email")) && (
+                          <div className="p-1 rounded bg-purple-500/10 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400" title="Email Notification">
+                            <Send className="w-3 h-3" />
                           </div>
                         )}
                       </div>
@@ -615,36 +650,59 @@ export default function DashboardSeriesPage() {
                     </div>
                   </div>
 
-                  {/* BOTTOM: VIEW PREVIOUS VIDEOS & TRIGGER GENERATION BUTTON */}
-                  <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-1.5">
+                  {/* BOTTOM: VIEW REELS, RUN WORKFLOW & GENERATE */}
+                  <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-1.5 flex-wrap">
                     {/* View Generated Videos Button */}
                     <Link
                       href={`/dashboard/videos?seriesId=${series.id}`}
-                      className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-[11px] font-semibold text-slate-700 dark:text-slate-200 transition-all flex items-center gap-1 hover:text-slate-900 dark:hover:text-white"
+                      className="px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-[11px] font-semibold text-slate-700 dark:text-slate-200 transition-all flex items-center gap-1 hover:text-slate-900 dark:hover:text-white"
                     >
                       <Film className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                       <span>Reels</span>
                     </Link>
 
-                    {/* Trigger Video Generation Button */}
-                    <button
-                      type="button"
-                      disabled={isGenerating || isPaused}
-                      onClick={() => handleTriggerGenerate(series)}
-                      className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 text-white font-bold text-[11px] shadow-sm shadow-purple-600/20 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin text-white" />
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-3 h-3 text-cyan-200 fill-cyan-200" />
-                          <span>Generate</span>
-                        </>
-                      )}
-                    </button>
+                    {/* <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        disabled={isGenerating || isExecutingWorkflow || isPaused}
+                        onClick={() => handleExecuteWorkflow(series)}
+                        title="Execute Workflow: Generates video now and dispatches to Email & Social Platforms"
+                        className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:opacity-95 text-white font-bold text-[11px] shadow-sm shadow-amber-500/20 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isExecutingWorkflow ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin text-white" />
+                            <span className="hidden sm:inline">Running...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-3 h-3 text-white fill-white" />
+                            <span>⚡ Run Workflow</span>
+                          </>
+                        )}
+                      </button>
+
+
+                      <button
+                        type="button"
+                        disabled={isGenerating || isExecutingWorkflow || isPaused}
+                        onClick={() => handleTriggerGenerate(series)}
+                        title="Generate Reel"
+                        className="px-2 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 text-white font-bold text-[11px] shadow-sm shadow-purple-600/20 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin text-white" />
+                            <span>Gen...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3 h-3 text-white fill-white" />
+                            <span>Gen</span>
+                          </>
+                        )}
+                      </button>
+                    </div> */}
                   </div>
                 </div>
               );

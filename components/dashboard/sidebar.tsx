@@ -21,6 +21,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { useUser, UserButton } from "@clerk/nextjs";
+import { getUserSubscriptionInfo, UserSubscriptionInfo } from "@/app/actions/billing";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 
 interface NavItem {
   name: string;
@@ -38,6 +40,21 @@ export function DashboardSidebar({ onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useUser();
+
+  const [subInfo, setSubInfo] = React.useState<UserSubscriptionInfo | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    async function loadSub() {
+      try {
+        const info = await getUserSubscriptionInfo();
+        setSubInfo(info);
+      } catch (err) {
+        // ignore
+      }
+    }
+    loadSub();
+  }, []);
 
   const navItems: NavItem[] = [
     {
@@ -76,6 +93,10 @@ export function DashboardSidebar({ onMobileClose }: SidebarProps) {
   };
 
   const handleCreateNewSeries = () => {
+    if (subInfo && !subInfo.canCreateSeries) {
+      setUpgradeModalOpen(true);
+      return;
+    }
     if (onMobileClose) onMobileClose();
     router.push("/dashboard/create");
   };
@@ -229,6 +250,15 @@ export function DashboardSidebar({ onMobileClose }: SidebarProps) {
           <Settings className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors shrink-0" />
         </Link>
       </div>
+
+      {/* Upgrade Plan Modal */}
+      <UpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        reason="series_limit"
+        currentPlan={subInfo?.planKey || "free"}
+        recommendedPlan={subInfo?.planKey === "basic" ? "unlimited" : "basic"}
+      />
     </aside>
   );
 }

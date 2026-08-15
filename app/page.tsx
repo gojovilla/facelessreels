@@ -14,7 +14,7 @@ import { Footer } from "@/components/footer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#090a0f] text-slate-100 flex flex-col selection:bg-purple-500/30 selection:text-purple-200">
+    <div className="dark bg-[#090a0f] text-slate-100 min-h-screen flex flex-col selection:bg-purple-500/30 selection:text-purple-200 [color-scheme:dark]">
       {/* Top Navbar */}
       <Navbar />
 

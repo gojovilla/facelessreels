@@ -3,6 +3,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
 import { inngest } from "@/inngest/client";
+import { calculateAggregatedRpm, getNicheRpmProfile } from "@/lib/niche-rpm";
+import { fetchYouTubeVideoStats } from "@/lib/youtube";
+import { getPlanLimits, canCreateMoreSeries, isPlatformAllowed } from "@/lib/plan-limits";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -40,11 +43,13 @@ export interface SeriesItem {
   published_videos?: number;
   scheduled_videos?: number;
   status?: string;
-  channels?: string[];
   views?: number;
-  rpm?: number | string;
+  rpm?: number;
+  est_rpm_formatted?: string;
+  est_rpm_range?: string;
   created_at?: string;
   updated_at?: string;
+  channels?: string[];
 }
 
 export interface CreateSeriesInput {
@@ -116,6 +121,32 @@ export async function createSeries(input: CreateSeriesInput): Promise<{
       return { success: false, error: "You must be signed in to create a series." };
     }
 
+    // Check Plan Series Limits
+    const userPlanKey =
+      (user.publicMetadata?.plan as string) ||
+      (user.unsafeMetadata?.plan as string) ||
+      "free";
+    const plan = getPlanLimits(userPlanKey);
+
+    const { count: seriesCount } = await supabase
+      .from("series")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    if (!canCreateMoreSeries(seriesCount || 0, plan.id)) {
+      return {
+        success: false,
+        error: `Series limit reached (${seriesCount}/${plan.maxSeries}). Your ${plan.name} plan allows up to ${plan.maxSeries} series. Please upgrade your plan.`,
+      };
+    }
+
+    // Filter allowed platforms
+    const requestedChannels = Array.isArray(input.channels) && input.channels.length > 0 ? input.channels : ["youtube"];
+    const allowedChannels = requestedChannels.filter((ch: string) => isPlatformAllowed(ch, plan.id));
+    const finalChannels = allowedChannels.length > 0 ? allowedChannels : ["youtube"];
+
+    const nicheProfile = getNicheRpmProfile(input.niche);
+
     const newSeriesData = {
       user_id: user.id,
       title: input.title,
@@ -144,7 +175,7 @@ export async function createSeries(input: CreateSeriesInput): Promise<{
       scheduled_videos: 30,
       status: "active",
       views: 0,
-      rpm: 0.0,
+      rpm: nicheProfile.avgRpm,
     };
 
     const { data, error } = await supabase
@@ -165,6 +196,21 @@ export async function createSeries(input: CreateSeriesInput): Promise<{
       };
     }
 
+    // Trigger instant evaluation by Inngest background scheduler
+    try {
+      await inngest.send({
+        name: "series/schedule.cron.check",
+        data: {
+          triggeredBy: "series_created",
+          seriesId: data?.id || "",
+          publishTime: input.publish_time,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (inngestErr) {
+      console.warn("Inngest schedule check trigger notice:", inngestErr);
+    }
+
     return { success: true, series: data };
   } catch (err: any) {
     console.error("Error creating series in database:", err);
@@ -180,6 +226,8 @@ export async function getUserSeries(): Promise<{
     queuedReels: number;
     totalViews: number;
     avgRpm: string;
+    rpmRange: string;
+    nichesSummary: string;
   };
 }> {
   try {
@@ -193,19 +241,22 @@ export async function getUserSeries(): Promise<{
           queuedReels: 0,
           totalViews: 0,
           avgRpm: "$0.00",
+          rpmRange: "$0.00",
+          nichesSummary: "No active niches",
         },
       };
     }
 
     const email = user.emailAddresses?.[0]?.emailAddress;
 
-    const { data, error } = await supabase
+    // 1. Fetch series
+    const { data: seriesData, error: seriesError } = await supabase
       .from("series")
       .select("*")
       .or(`user_id.eq.${user.id},user_id.eq.${email}`)
       .order("created_at", { ascending: false });
 
-    if (error) {
+    if (seriesError) {
       return {
         success: true,
         series: [],
@@ -214,11 +265,65 @@ export async function getUserSeries(): Promise<{
           queuedReels: 0,
           totalViews: 0,
           avgRpm: "$0.00",
+          rpmRange: "$0.00",
+          nichesSummary: "No active niches",
         },
       };
     }
 
-    const seriesList: SeriesItem[] = data || [];
+    // 2. Fetch reels to aggregate live video counts and views
+    const { data: userReels } = await supabase
+      .from("reels")
+      .select("id, series_id, views, actual_views, youtube_video_id, status, created_at")
+      .or(`user_id.eq.${user.id},user_id.eq.${email}`);
+
+    // 3. Fetch YouTube channel for live views sync if connected
+    const { data: userChannels } = await supabase
+      .from("channels")
+      .select("*")
+      .or(`user_id.eq.${user.id},user_id.eq.${email}`)
+      .eq("platform", "youtube");
+
+    const ytChannel = userChannels?.[0];
+    let ytLiveStats: Record<string, { views: number; likes: number; comments: number }> = {};
+
+    if (ytChannel && userReels && userReels.length > 0) {
+      const ytVideoIds = userReels
+        .filter((r: any) => r.youtube_video_id)
+        .map((r: any) => r.youtube_video_id);
+
+      if (ytVideoIds.length > 0) {
+        ytLiveStats = await fetchYouTubeVideoStats(ytVideoIds, ytChannel);
+      }
+    }
+
+    // 4. Enrich each series with Niche RPM Profile and accurate views
+    const seriesList: SeriesItem[] = (seriesData || []).map((s: any) => {
+      const nicheProf = getNicheRpmProfile(s.niche);
+      const matchedReels = (userReels || []).filter((r: any) => r.series_id === s.id);
+      
+      const seriesReelViews = matchedReels.reduce((acc: number, r: any) => {
+        const ytViews = r.youtube_video_id && ytLiveStats[r.youtube_video_id]
+          ? ytLiveStats[r.youtube_video_id].views
+          : 0;
+        const reelViews = typeof r.views === "number" ? r.views : parseInt(r.views || "0", 10) || 0;
+        return acc + Math.max(reelViews, ytViews, r.actual_views || 0);
+      }, 0);
+
+      const totalViews = Math.max(s.views || 0, seriesReelViews);
+
+      return {
+        ...s,
+        views: totalViews,
+        rpm: nicheProf.avgRpm,
+        est_rpm_formatted: nicheProf.rpmFormatted,
+        est_rpm_range: nicheProf.rpmRange,
+      };
+    });
+
+    // 5. Calculate Target Niche Aggregated RPM
+    const aggregatedRpm = calculateAggregatedRpm(seriesList);
+
     const totalSeries = seriesList.length;
     const queuedReels = seriesList.reduce(
       (acc, s) => acc + (s.scheduled_videos || 0),
@@ -233,7 +338,9 @@ export async function getUserSeries(): Promise<{
         totalSeries,
         queuedReels,
         totalViews,
-        avgRpm: totalSeries > 0 ? "$0.00" : "--",
+        avgRpm: aggregatedRpm.avgRpmFormatted,
+        rpmRange: aggregatedRpm.rpmRange,
+        nichesSummary: aggregatedRpm.nichesSummary,
       },
     };
   } catch (err) {
@@ -245,7 +352,9 @@ export async function getUserSeries(): Promise<{
         totalSeries: 0,
         queuedReels: 0,
         totalViews: 0,
-        avgRpm: "--",
+        avgRpm: "$0.00",
+        rpmRange: "$0.00",
+        nichesSummary: "No active niches",
       },
     };
   }
@@ -317,6 +426,21 @@ export async function editSeriesDetails(
     if (error) {
       console.warn("Edit series details error:", error.message);
     }
+
+    try {
+      await inngest.send({
+        name: "series/schedule.cron.check",
+        data: {
+          triggeredBy: "series_updated",
+          seriesId,
+          updates,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (inngestErr) {
+      console.warn("Inngest schedule check trigger notice:", inngestErr);
+    }
+
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || "Failed to edit series" };
@@ -413,6 +537,133 @@ export async function triggerReelGeneration(
     };
   } catch (err: any) {
     return { success: false, message: err?.message || "Failed to trigger video generation" };
+  }
+}
+
+/**
+ * Executes the complete Scheduled Video Workflow immediately for testing
+ * Generates script, voiceover, subtitles, scene images, renders video, and dispatches to Email & social platforms.
+ */
+export async function executeSeriesWorkflow(
+  seriesId: string,
+  options?: { immediatePublish?: boolean }
+): Promise<{
+  success: boolean;
+  message: string;
+  reel?: ReelItem;
+  eventIds?: string[];
+}> {
+  try {
+    const user = await currentUser();
+    if (!user) return { success: false, message: "Unauthorized" };
+
+    // 1. Fetch series info
+    const { data: seriesData, error: fetchErr } = await supabase
+      .from("series")
+      .select("*")
+      .eq("id", seriesId)
+      .single();
+
+    if (fetchErr || !seriesData) {
+      return { success: false, message: `Series not found: ${fetchErr?.message}` };
+    }
+
+    const initialTitle = seriesData?.title
+      ? `${seriesData.title} - Episode #${(seriesData.published_videos || 0) + 1}`
+      : "Automated Viral Short";
+
+    const visualStyleId = (seriesData?.visual_style_id || seriesData?.visual_style || "cinematic").toLowerCase();
+    let defaultThumbnail = "/video-style/realism.jpg";
+    if (visualStyleId.includes("fantasy") || visualStyleId.includes("gothic")) defaultThumbnail = "/video-style/dark_fantasy_new.jpg";
+    else if (visualStyleId.includes("creepy") || visualStyleId.includes("horror") || visualStyleId.includes("eerie")) defaultThumbnail = "/video-style/creepy_comic.jpg";
+    else if (visualStyleId.includes("comic") || visualStyleId.includes("graphic")) defaultThumbnail = "/video-style/comic.jpg";
+    else if (visualStyleId.includes("ghibli")) defaultThumbnail = "/video-style/ghibli.jpg";
+    else if (visualStyleId.includes("anime") || visualStyleId.includes("shonen")) defaultThumbnail = "/video-style/anime.jpg";
+    else if (visualStyleId.includes("disney") || visualStyleId.includes("pixar") || visualStyleId.includes("3d")) defaultThumbnail = "/video-style/disney.jpeg";
+    else if (visualStyleId.includes("lego")) defaultThumbnail = "/video-style/lego.jpg";
+    else if (visualStyleId.includes("cartoon") || visualStyleId.includes("vector")) defaultThumbnail = "/video-style/modern_cartoon.png";
+    else if (visualStyleId.includes("mythology") || visualStyleId.includes("gods") || visualStyleId.includes("ancient")) defaultThumbnail = "/video-style/mythology.jpg";
+    else if (visualStyleId.includes("oil") || visualStyleId.includes("painting") || visualStyleId.includes("renaissance")) defaultThumbnail = "/video-style/painting.png";
+    else if (visualStyleId.includes("pixel") || visualStyleId.includes("game")) defaultThumbnail = "/video-style/pixel_art.jpg";
+    else if (visualStyleId.includes("polaroid") || visualStyleId.includes("vintage") || visualStyleId.includes("film")) defaultThumbnail = "/video-style/polaroid.jpg";
+    else if (visualStyleId.includes("fantastic") || visualStyleId.includes("scifi") || visualStyleId.includes("space") || visualStyleId.includes("cyberpunk")) defaultThumbnail = "/video-style/fantastic.png";
+
+    // 2. Insert initial placeholder reel with status: "generating"
+    const newReel = {
+      user_id: user.id,
+      series_id: seriesId,
+      title: initialTitle,
+      niche: seriesData?.niche || "Viral",
+      hook: "Running end-to-end scheduled workflow pipeline...",
+      script: "Synthesizing AI video script, rendering MP4, and preparing multi-platform dispatch...",
+      voice_name: seriesData?.voice || "Neural Voice",
+      caption_style: seriesData?.caption_style || "Hormozi Viral Pop",
+      thumbnail_url: defaultThumbnail,
+      status: "generating",
+      viral_score: Math.floor(Math.random() * 8) + 92,
+      duration_seconds: seriesData?.duration_option?.includes("60") ? 65 : 45,
+      actual_views: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: reelData } = await supabase
+      .from("reels")
+      .insert(newReel)
+      .select("*")
+      .single();
+
+    const createdReelId = reelData?.id;
+
+    // 3. Dispatch Inngest Video Generation + Publishing Workflow
+    const { ids } = await inngest.send({
+      name: "video/generate.reel",
+      data: {
+        seriesId,
+        userId: user.id,
+        userEmail: user.emailAddresses?.[0]?.emailAddress,
+        reelId: createdReelId,
+        immediateDispatch: options?.immediatePublish ?? true,
+        triggeredByWorkflowButton: true,
+        triggeredAt: new Date().toISOString(),
+      },
+    });
+
+    return {
+      success: true,
+      message: "End-to-end series workflow triggered! Video generation and platform dispatches are underway.",
+      reel: reelData || (newReel as any),
+      eventIds: ids,
+    };
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Failed to execute series workflow" };
+  }
+}
+
+/**
+ * Triggers the 15-minute schedule evaluation cron check manually
+ */
+export async function triggerScheduleCronCheck(): Promise<{
+  success: boolean;
+  message: string;
+  eventIds?: string[];
+}> {
+  try {
+    const { ids } = await inngest.send({
+      name: "series/schedule.cron.check",
+      data: {
+        triggeredManually: true,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    return {
+      success: true,
+      message: "Daily schedule evaluation triggered successfully.",
+      eventIds: ids,
+    };
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Failed to trigger schedule check" };
   }
 }
 

@@ -17,6 +17,10 @@ import {
   Globe,
 } from "lucide-react";
 import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
+import { useUser } from "@clerk/nextjs";
+import { getPlanLimits, isPlatformAllowed, PlanType } from "@/lib/plan-limits";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
+import { Lock } from "lucide-react";
 
 export interface ScheduleStepData {
   seriesName: string;
@@ -50,32 +54,36 @@ const TIME_PRESETS = [
 
 const PLATFORM_OPTIONS = [
   {
-    id: "tiktok",
-    name: "TikTok",
-    icon: TikTokIcon,
-    tag: "High Virality",
-    color: "border-cyan-500/40 bg-cyan-500/10 text-cyan-300",
-  },
-  {
     id: "youtube",
     name: "YouTube Shorts",
     icon: YoutubeIcon,
-    tag: "Long-term Search",
+    tag: "Free & Basic",
     color: "border-red-500/40 bg-red-500/10 text-red-300",
-  },
-  {
-    id: "instagram",
-    name: "Instagram Reels",
-    icon: InstagramIcon,
-    tag: "Social Discovery",
-    color: "border-pink-500/40 bg-pink-500/10 text-pink-300",
+    requiredPlan: "free",
   },
   {
     id: "email",
     name: "Email Newsletter",
     icon: Send,
-    tag: "Owned Audience",
+    tag: "Free & Basic",
     color: "border-purple-500/40 bg-purple-500/10 text-purple-300",
+    requiredPlan: "free",
+  },
+  {
+    id: "instagram",
+    name: "Instagram Reels",
+    icon: InstagramIcon,
+    tag: "Unlimited Only",
+    color: "border-pink-500/40 bg-pink-500/10 text-pink-300",
+    requiredPlan: "unlimited",
+  },
+  {
+    id: "tiktok",
+    name: "TikTok",
+    icon: TikTokIcon,
+    tag: "Unlimited Only",
+    color: "border-cyan-500/40 bg-cyan-500/10 text-cyan-300",
+    requiredPlan: "unlimited",
   },
 ];
 
@@ -87,6 +95,16 @@ export function ScheduleStep({
   isSubmitting = false,
   isEditing = false,
 }: ScheduleStepProps) {
+  const { user } = useUser();
+  const userPlanKey =
+    (user?.publicMetadata?.plan as string) ||
+    (user?.unsafeMetadata?.plan as string) ||
+    "free";
+  const userPlan = getPlanLimits(userPlanKey);
+
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState<boolean>(false);
+  const [lockedPlatformName, setLockedPlatformName] = useState<string>("");
+
   const defaultTitle = seriesContext?.nicheTitle
     ? `${seriesContext.nicheTitle} Viral Series`
     : "Daily Automated Mindset Series";
@@ -98,9 +116,15 @@ export function ScheduleStep({
     "30-50 sec video" | "60-70 sec video"
   >(initialData?.durationOption || "30-50 sec video");
 
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(
-    initialData?.platforms || ["tiktok", "youtube", "instagram"]
-  );
+  // Filter allowed platforms based on initial data or plan defaults
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
+    if (initialData?.platforms && initialData.platforms.length > 0) {
+      return initialData.platforms;
+    }
+    return userPlan.id === "unlimited"
+      ? ["youtube", "email", "instagram", "tiktok"]
+      : ["youtube", "email"];
+  });
 
   // Time Picker state (defaults to 18:30 / 6:30 PM)
   const [publishTime, setPublishTime] = useState<string>(
@@ -129,6 +153,14 @@ export function ScheduleStep({
   };
 
   const togglePlatform = (platformId: string) => {
+    const isAllowed = isPlatformAllowed(platformId, userPlanKey);
+    if (!isAllowed) {
+      const platObj = PLATFORM_OPTIONS.find((p) => p.id === platformId);
+      setLockedPlatformName(platObj?.name || platformId);
+      setUpgradeModalOpen(true);
+      return;
+    }
+
     setSelectedPlatforms((prev) => {
       if (prev.includes(platformId)) {
         if (prev.length === 1) return prev; // Keep at least one
@@ -274,6 +306,7 @@ export function ScheduleStep({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {PLATFORM_OPTIONS.map((plat) => {
               const isSelected = selectedPlatforms.includes(plat.id);
+              const isLocked = !isPlatformAllowed(plat.id, userPlanKey);
               const IconComponent = plat.icon;
 
               return (
@@ -281,30 +314,43 @@ export function ScheduleStep({
                   key={plat.id}
                   type="button"
                   onClick={() => togglePlatform(plat.id)}
-                  className={`p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-2 cursor-pointer ${
-                    isSelected
+                  className={`p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-2 cursor-pointer relative ${
+                    isLocked
+                      ? "bg-slate-100/70 dark:bg-white/[0.02] border-slate-200 dark:border-white/10 opacity-75 hover:opacity-100 hover:border-purple-400/50"
+                      : isSelected
                       ? `${plat.color} border-2 shadow-sm`
                       : "bg-slate-50 dark:bg-white/[0.03] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
                 >
+                  {isLocked && (
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[9px] font-bold border border-purple-500/30 flex items-center gap-1">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span>Unlimited</span>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <IconComponent className="w-5 h-5" />
-                    <div
-                      className={`w-4 h-4 rounded-md border flex items-center justify-center ${
-                        isSelected
-                          ? "border-purple-600 bg-purple-600 text-white"
-                          : "border-slate-300 dark:border-white/20"
-                      }`}
-                    >
-                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                    </div>
+                    {!isLocked && (
+                      <div
+                        className={`w-4 h-4 rounded-md border flex items-center justify-center ${
+                          isSelected
+                            ? "border-purple-600 bg-purple-600 text-white"
+                            : "border-slate-300 dark:border-white/20"
+                        }`}
+                      >
+                        {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+                    )}
                   </div>
 
                   <div>
-                    <div className={`text-xs font-bold ${isSelected ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-white"}`}>
+                    <div className={`text-xs font-bold ${isLocked ? "text-slate-700 dark:text-slate-300" : isSelected ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-white"}`}>
                       {plat.name}
                     </div>
-                    <span className="text-[10px] opacity-75">{plat.tag}</span>
+                    <span className="text-[10px] opacity-75">
+                      {isLocked ? "Locked on " + userPlan.name : plat.tag}
+                    </span>
                   </div>
                 </button>
               );
@@ -454,6 +500,16 @@ export function ScheduleStep({
           )}
         </button>
       </div>
+
+      {/* Upgrade Plan Modal */}
+      <UpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        reason="platform_locked"
+        currentPlan={userPlanKey}
+        recommendedPlan="unlimited"
+        lockedPlatformName={lockedPlatformName}
+      />
     </form>
   );
 }

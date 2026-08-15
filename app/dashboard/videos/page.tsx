@@ -313,33 +313,30 @@ function VideosContent() {
             <button
               type="button"
               onClick={() => setFilterStatus("all")}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                filterStatus === "all"
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${filterStatus === "all"
                   ? "bg-white dark:bg-purple-600/30 text-purple-700 dark:text-purple-300 shadow-sm border border-slate-200 dark:border-purple-500/40"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+                }`}
             >
               All ({videos.length})
             </button>
             <button
               type="button"
               onClick={() => setFilterStatus("processing")}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                filterStatus === "processing"
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${filterStatus === "processing"
                   ? "bg-white dark:bg-[#4f46e5]/30 text-indigo-700 dark:text-indigo-300 shadow-sm border border-slate-200 dark:border-[#6366f1]/40"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+                }`}
             >
               Processing ({processingCount})
             </button>
             <button
               type="button"
               onClick={() => setFilterStatus("ready")}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                filterStatus === "ready"
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${filterStatus === "ready"
                   ? "bg-white dark:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 shadow-sm border border-slate-200 dark:border-emerald-500/40"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+                }`}
             >
               Ready ({videos.length - processingCount})
             </button>
@@ -419,9 +416,8 @@ function VideosContent() {
               <div
                 key={video.id}
                 onClick={() => handleOpenPreview(video)}
-                className={`bg-white dark:bg-[#0f1220] rounded-2xl p-3 border border-slate-200 dark:border-white/10 transition-all flex flex-col justify-between space-y-2.5 group shadow-sm hover:shadow-md dark:shadow-lg dark:hover:shadow-2xl relative overflow-hidden ${
-                  !isProcessing ? "cursor-pointer hover:border-purple-500/40" : "cursor-default"
-                }`}
+                className={`bg-white dark:bg-[#0f1220] rounded-2xl p-3 border border-slate-200 dark:border-white/10 transition-all flex flex-col justify-between space-y-2.5 group shadow-sm hover:shadow-md dark:shadow-lg dark:hover:shadow-2xl relative overflow-hidden ${!isProcessing ? "cursor-pointer hover:border-purple-500/40" : "cursor-default"
+                  }`}
               >
                 {/* 1. TOP THUMBNAIL CONTAINER */}
                 <div className="relative aspect-[16/9] w-full rounded-xl bg-slate-100 dark:bg-[#0a0c14] border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col justify-between">
@@ -474,11 +470,10 @@ function VideosContent() {
                 <div className="space-y-2 px-0.5">
                   {/* Video Title */}
                   <h3
-                    className={`text-xs sm:text-sm font-bold leading-tight line-clamp-1 ${
-                      isProcessing
+                    className={`text-xs sm:text-sm font-bold leading-tight line-clamp-1 ${isProcessing
                         ? "text-indigo-600 dark:text-[#818cf8] font-extrabold"
                         : "text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-200 transition-colors"
-                    }`}
+                      }`}
                   >
                     {displayTitle}
                   </h3>
@@ -566,9 +561,9 @@ function VideosContent() {
               {/* 9:16 Vertical Screen Frame */}
               <div className="relative aspect-[9/16] w-full max-w-[250px] rounded-2xl overflow-hidden bg-[#121526] border border-white/15 shadow-2xl flex flex-col justify-between p-4 my-auto">
                 {previewVideo.video_url &&
-                (previewVideo.video_url.includes(".mp4") ||
-                  (!previewVideo.video_url.includes(".mp3") &&
-                    previewVideo.video_url.startsWith("http"))) ? (
+                  (previewVideo.video_url.includes(".mp4") ||
+                    (!previewVideo.video_url.includes(".mp3") &&
+                      previewVideo.video_url.startsWith("http"))) ? (
                   /* RENDER FULL MP4 VIDEO */
                   <div className="absolute inset-0 w-full h-full bg-black">
                     <video
@@ -694,11 +689,10 @@ function VideosContent() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("preview")}
-                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === "preview"
+                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === "preview"
                       ? "border-purple-600 dark:border-purple-400 text-purple-700 dark:text-purple-300 font-bold"
                       : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                    }`}
                 >
                   <Film className="w-3.5 h-3.5" />
                   <span>Overview</span>
@@ -707,11 +701,10 @@ function VideosContent() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("script")}
-                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === "script"
+                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === "script"
                       ? "border-purple-600 dark:border-purple-400 text-purple-700 dark:text-purple-300 font-bold"
                       : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                    }`}
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>Script</span>
@@ -720,11 +713,10 @@ function VideosContent() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("scenes")}
-                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === "scenes"
+                  className={`pb-2.5 px-1 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === "scenes"
                       ? "border-purple-600 dark:border-purple-400 text-purple-700 dark:text-purple-300 font-bold"
                       : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                    }`}
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
                   <span>Scenes ({previewVideo.scenes?.length || previewVideo.image_prompts?.length || 5})</span>
@@ -777,9 +769,9 @@ function VideosContent() {
 
                     {/* Video / Audio Player Controls Box */}
                     {previewVideo.video_url &&
-                    (previewVideo.video_url.includes(".mp4") ||
-                      (!previewVideo.video_url.includes(".mp3") &&
-                        previewVideo.video_url.startsWith("http"))) ? (
+                      (previewVideo.video_url.includes(".mp4") ||
+                        (!previewVideo.video_url.includes(".mp3") &&
+                          previewVideo.video_url.startsWith("http"))) ? (
                       <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-gradient-to-r dark:from-purple-950/40 dark:to-cyan-950/40 border border-slate-200 dark:border-purple-500/30 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2.5">
                           <div className="w-9 h-9 rounded-xl bg-purple-600/15 dark:bg-purple-600/30 border border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center">
@@ -870,10 +862,10 @@ function VideosContent() {
                     {(previewVideo.scenes && previewVideo.scenes.length > 0
                       ? previewVideo.scenes
                       : (previewVideo.image_prompts || []).map((prompt, idx) => ({
-                          sceneNumber: idx + 1,
-                          imagePrompt: prompt,
-                          imageUrl: previewVideo.thumbnail_url,
-                        }))
+                        sceneNumber: idx + 1,
+                        imagePrompt: prompt,
+                        imageUrl: previewVideo.thumbnail_url,
+                      }))
                     ).map((scene: any, idx: number) => (
                       <div
                         key={idx}
@@ -906,7 +898,7 @@ function VideosContent() {
               <div className="p-3.5 px-5 border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/40 flex items-center justify-between gap-3">
                 <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>Production Assets Stored in Supabase</span>
+                  <span></span>
                 </span>
 
                 <button
