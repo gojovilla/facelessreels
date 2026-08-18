@@ -46,6 +46,7 @@ export function Navbar() {
     { name: "Channels", href: "#channels" },
     { name: "Auto-Scheduler", href: "#scheduler" },
     { name: "Niches", href: "#niches" },
+    { name: "YouTube API", href: "#youtube-disclosure" },
     { name: "Pricing", href: "#pricing" },
     { name: "FAQ", href: "#faq" },
   ];
@@ -71,14 +72,14 @@ export function Navbar() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-xl font-extrabold tracking-tight text-white group-hover:text-purple-200 transition-colors">
-                  Faceless<span className="gradient-text-purple">Reels</span>
+                  FacelessReels <span className="gradient-text-purple">AI</span>
                 </span>
                 <span className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase bg-purple-500/15 border border-purple-500/30 text-purple-300 rounded-md">
-                  AI v2.4
+                  v2.4
                 </span>
               </div>
               <span className="text-[11px] text-slate-400 tracking-tight -mt-0.5">
-                Create & Auto-Schedule
+                Automated Video Generator
               </span>
             </div>
           </Link>

@@ -6,6 +6,7 @@ import { FeaturesGrid } from "@/components/features-grid";
 import { HowItWorks } from "@/components/how-it-works";
 import { SchedulerShowcase } from "@/components/scheduler-showcase";
 import { NichesShowcase } from "@/components/niches-showcase";
+import { GoogleDisclosureSection } from "@/components/google-disclosure-section";
 import { PricingSection } from "@/components/pricing-section";
 import { Testimonials } from "@/components/testimonials";
 import { FAQSection } from "@/components/faq-section";
@@ -41,20 +42,23 @@ export default function Home() {
         {/* 7. Trending High-RPM Niches & Templates */}
         <NichesShowcase />
 
-        {/* 8. Pricing Plans with Monthly/Annual toggle */}
+        {/* 8. YouTube API Services & Google Compliance Disclosure */}
+        <GoogleDisclosureSection />
+
+        {/* 9. Pricing Plans with Monthly/Annual toggle */}
         <PricingSection />
 
-        {/* 9. Social Proof & Creator Testimonials */}
+        {/* 10. Social Proof & Creator Testimonials */}
         <Testimonials />
 
-        {/* 10. Monetization & Technical FAQs */}
+        {/* 11. Monetization & Technical FAQs */}
         <FAQSection />
 
-        {/* 11. High-Converting Final CTA Banner */}
+        {/* 12. High-Converting Final CTA Banner */}
         <CTABanner />
       </main>
 
-      {/* 12. Comprehensive 5-Column Rich Footer */}
+      {/* 13. Comprehensive 5-Column Rich Footer */}
       <Footer />
     </div>
   );

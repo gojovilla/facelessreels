@@ -102,12 +102,12 @@ export function Footer() {
                 </div>
               </div>
               <span className="text-xl font-extrabold tracking-tight text-white">
-                Faceless<span className="gradient-text-purple">Reels</span>
+                FacelessReels <span className="gradient-text-purple">AI</span>
               </span>
             </Link>
 
             <p className="text-xs text-slate-300 leading-relaxed max-w-sm">
-              The all-in-one AI short video generator & auto-scheduler. Create viral shorts in seconds and automatically publish to YouTube, Instagram, TikTok & Email on complete autopilot.
+              <strong>FacelessReels AI</strong> is an automated short video generator & YouTube scheduler. Create viral shorts in seconds and automatically publish to YouTube, Instagram, TikTok & Email on complete autopilot.
             </p>
 
             {/* Live Operational Status */}
@@ -291,18 +291,23 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-slate-200 transition-colors">
+                <a href="#youtube-disclosure" className="hover:text-red-400 transition-colors flex items-center gap-1">
+                  <YoutubeIcon className="w-3.5 h-3.5 text-red-400" /> YouTube API Disclosure
+                </a>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-slate-200 transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-slate-200 transition-colors">
+                <Link href="/privacy" className="hover:text-slate-200 transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-slate-200 transition-colors flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> DMCA Safe Harbor
+                <a href="#youtube-disclosure" className="hover:text-slate-200 transition-colors flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Google Limited Use Policy
                 </a>
               </li>
             </ul>
@@ -312,7 +317,7 @@ export function Footer() {
         {/* Bottom Copyright & Guarantee Sub-Footer */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300">
           <div className="flex items-center gap-2">
-            <span>&copy; {new Date().getFullYear()} FacelessReels.ai Inc. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} FacelessReels AI. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-300">

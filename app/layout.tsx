@@ -16,26 +16,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FacelessReels.ai — AI Short Video Generator & Auto-Scheduler",
+  title: "FacelessReels AI — Automated Short Video Generator & YouTube Scheduler",
   description:
-    "Generate viral faceless shorts in seconds with AI voiceovers, dynamic captions, and cinematic b-roll. Auto-schedule 30 days of content to YouTube Shorts, Instagram Reels, TikTok, and Email video digests on complete autopilot.",
+    "FacelessReels AI is an automated short video generator and YouTube scheduler. Generate viral faceless reels in seconds with AI voiceovers, dynamic captions, and cinematic b-roll. Auto-schedule content to YouTube Shorts, Instagram Reels, TikTok, and Email digests.",
   keywords: [
+    "FacelessReels AI",
     "AI video generator",
     "faceless reels",
-    "auto scheduler",
-    "YouTube shorts AI",
+    "YouTube shorts automation",
+    "YouTube auto scheduler",
     "TikTok scheduler",
     "Instagram reels automation",
     "faceless channel automation",
     "AI voiceover shorts",
     "email video newsletter",
   ],
-  authors: [{ name: "FacelessReels Team" }],
+  authors: [{ name: "FacelessReels AI Team" }],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+  },
   openGraph: {
-    title: "FacelessReels.ai — AI Short Video Generator & Auto-Scheduler",
+    title: "FacelessReels AI — Automated Short Video Generator & YouTube Scheduler",
     description:
-      "Generate and auto-schedule 30 days of viral faceless shorts for YouTube, Instagram, TikTok & Email on autopilot.",
+      "FacelessReels AI generates and auto-schedules viral faceless shorts for YouTube, Instagram, TikTok & Email on autopilot.",
     type: "website",
+    siteName: "FacelessReels AI",
   },
 };
 
