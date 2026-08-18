@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CreditCard,
   CheckCircle2,
@@ -22,6 +22,7 @@ import { useUser, PricingTable, useClerk } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { useTheme } from "next-themes";
 import { getPlanLimits, PlanType } from "@/lib/plan-limits";
+import { getUserSubscriptionInfo, UserSubscriptionInfo } from "@/app/actions/billing";
 
 export default function BillingPage() {
   const { user } = useUser();
@@ -30,7 +31,22 @@ export default function BillingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [showClerkPricing, setShowClerkPricing] = useState<boolean>(true);
 
+  const [subInfo, setSubInfo] = useState<UserSubscriptionInfo | null>(null);
+
+  useEffect(() => {
+    async function loadSub() {
+      try {
+        const info = await getUserSubscriptionInfo();
+        setSubInfo(info);
+      } catch (err) {
+        // ignore
+      }
+    }
+    loadSub();
+  }, []);
+
   const userPlanKey =
+    subInfo?.planKey ||
     (user?.publicMetadata?.plan as string) ||
     (user?.unsafeMetadata?.plan as string) ||
     "free";
@@ -42,6 +58,10 @@ export default function BillingPage() {
     openUserProfile();
   };
 
+  const isFreeActive = userPlan.id === "free";
+  const isBasicActive = userPlan.id === "basic";
+  const isUnlimitedActive = userPlan.id === "unlimited";
+
   const plans = [
     {
       name: "Free Plan",
@@ -49,7 +69,7 @@ export default function BillingPage() {
       price: "$0",
       period: "forever",
       description: "For creators starting their first automated faceless channel",
-      current: userPlanKey === "free",
+      current: isFreeActive,
       features: [
         "1 Active Automated Video Series",
         "YouTube Shorts & Email Channels Only",
@@ -66,7 +86,7 @@ export default function BillingPage() {
       tier: "basic",
       price: billingCycle === "yearly" ? "$15" : "$19",
       period: "/month",
-      popular: userPlanKey === "basic",
+      popular: isBasicActive,
       description: "For growing creators managing up to 3 video pipelines",
       features: [
         "Up to 3 Automated Video Series Simultaneously",
@@ -76,7 +96,7 @@ export default function BillingPage() {
         "30-Day Auto-Scheduler with 2h Pre-Generation",
         "Target Niches RPM Monetization Intelligence",
       ],
-      cta: userPlanKey === "basic" ? "Active Plan" : "Upgrade to Basic",
+      cta: isBasicActive ? "Active Plan" : "Upgrade to Basic",
       badge: "Growth",
     },
     {
@@ -95,7 +115,7 @@ export default function BillingPage() {
         "Priority 24/7 AWS Lambda Rendering Queue",
         "Custom Art Styles & Unlimited Edits",
       ],
-      cta: userPlanKey === "unlimited" ? "Active Plan" : "Upgrade to Unlimited",
+      cta: isUnlimitedActive ? "Active Plan" : "Upgrade to Unlimited",
       badge: "Most Popular",
     },
   ];

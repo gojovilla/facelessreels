@@ -18,6 +18,7 @@ import {
 import { useUser } from "@clerk/nextjs";
 import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
 import { getPlanLimits, isPlatformAllowed, PlanType } from "@/lib/plan-limits";
+import { getUserSubscriptionInfo, UserSubscriptionInfo } from "@/app/actions/billing";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 import { Lock } from "lucide-react";
 import {
@@ -38,7 +39,10 @@ type TabKey = "channels" | "profile" | "notifications";
 
 export default function SettingsPage() {
   const { user, isLoaded } = useUser();
+  const [subInfo, setSubInfo] = useState<UserSubscriptionInfo | null>(null);
+
   const userPlanKey =
+    subInfo?.planKey ||
     (user?.publicMetadata?.plan as string) ||
     (user?.unsafeMetadata?.plan as string) ||
     "free";
@@ -55,6 +59,18 @@ export default function SettingsPage() {
   >(null);
   const [showYoutubeSetupGuide, setShowYoutubeSetupGuide] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSub() {
+      try {
+        const info = await getUserSubscriptionInfo();
+        setSubInfo(info);
+      } catch (err) {
+        // ignore
+      }
+    }
+    loadSub();
+  }, []);
 
   // General Settings State
   const [userSettings, setUserSettings] = useState<UserSettingsItem>({

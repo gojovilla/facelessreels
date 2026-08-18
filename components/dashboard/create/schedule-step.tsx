@@ -19,6 +19,7 @@ import {
 import { YoutubeIcon, InstagramIcon, TikTokIcon } from "@/components/icons";
 import { useUser } from "@clerk/nextjs";
 import { getPlanLimits, isPlatformAllowed, PlanType } from "@/lib/plan-limits";
+import { getUserSubscriptionInfo, UserSubscriptionInfo } from "@/app/actions/billing";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 import { Lock } from "lucide-react";
 
@@ -96,7 +97,10 @@ export function ScheduleStep({
   isEditing = false,
 }: ScheduleStepProps) {
   const { user } = useUser();
+  const [subInfo, setSubInfo] = useState<UserSubscriptionInfo | null>(null);
+
   const userPlanKey =
+    subInfo?.planKey ||
     (user?.publicMetadata?.plan as string) ||
     (user?.unsafeMetadata?.plan as string) ||
     "free";
@@ -140,6 +144,16 @@ export function ScheduleStep({
     } catch {
       setUserTimeZone("Local Time");
     }
+
+    async function fetchSub() {
+      try {
+        const info = await getUserSubscriptionInfo();
+        setSubInfo(info);
+      } catch (err) {
+        // ignore
+      }
+    }
+    fetchSub();
   }, []);
 
   // Format 24h string (e.g. 18:30) to 12h readable string (e.g. 6:30 PM)
@@ -153,7 +167,7 @@ export function ScheduleStep({
   };
 
   const togglePlatform = (platformId: string) => {
-    const isAllowed = isPlatformAllowed(platformId, userPlanKey);
+    const isAllowed = isPlatformAllowed(platformId, userPlan.id);
     if (!isAllowed) {
       const platObj = PLATFORM_OPTIONS.find((p) => p.id === platformId);
       setLockedPlatformName(platObj?.name || platformId);

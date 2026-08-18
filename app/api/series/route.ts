@@ -3,6 +3,7 @@ import { currentUser, auth } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
 import { inngest } from "@/inngest/client";
 import { getPlanLimits, canCreateMoreSeries, isPlatformAllowed } from "@/lib/plan-limits";
+import { getUserSubscriptionInfo } from "@/app/actions/billing";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -62,27 +63,19 @@ export async function POST(req: NextRequest) {
 
     const userIdentifier = userId || user?.id || user?.emailAddresses?.[0]?.emailAddress || "anonymous";
 
-    // Enforce Plan Limits for new series creation
-    const userPlanKey =
-      (user?.publicMetadata?.plan as string) ||
-      (user?.unsafeMetadata?.plan as string) ||
-      "free";
-    const plan = getPlanLimits(userPlanKey);
+    // Enforce Plan Limits for new series creation with full Clerk & DB detection
+    const subInfo = await getUserSubscriptionInfo();
+    const plan = subInfo.plan;
 
-    const { count: currentSeriesCount } = await supabase
-      .from("series")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userIdentifier);
-
-    if (!canCreateMoreSeries(currentSeriesCount || 0, plan.id)) {
+    if (!subInfo.canCreateSeries) {
       return NextResponse.json(
         {
           success: false,
-          error: `Series limit reached (${currentSeriesCount}/${plan.maxSeries}). Your ${plan.name} plan allows up to ${plan.maxSeries} series. Please upgrade your plan.`,
+          error: `Series limit reached (${subInfo.currentSeriesCount}/${plan.maxSeries}). Your ${plan.name} plan allows up to ${plan.maxSeries} series. Please upgrade your plan.`,
           limitReached: true,
           currentPlan: plan.id,
           maxSeries: plan.maxSeries,
-          currentSeriesCount,
+          currentSeriesCount: subInfo.currentSeriesCount,
         },
         { status: 403 }
       );

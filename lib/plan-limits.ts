@@ -71,14 +71,30 @@ export const PLANS: Record<PlanType, PlanConfig> = {
  */
 export function getPlanLimits(planKey?: string | null): PlanConfig {
   if (!planKey) return PLANS.free;
-  const normalized = planKey.toLowerCase().trim();
+  const normalized = planKey.toLowerCase().replace(/[-_]/g, " ").trim();
 
-  if (normalized === "unlimited" || normalized === "agency" || normalized === "pro") {
+  // Match "unlimited", "unlimted" (Clerk typo), "pro", "agency", "infinite", "enterprise"
+  if (
+    normalized.includes("unlimit") ||
+    normalized.includes("unlimt") ||
+    normalized.includes("agency") ||
+    normalized.includes("pro") ||
+    normalized.includes("infinite") ||
+    normalized.includes("enterprise")
+  ) {
     return PLANS.unlimited;
   }
-  if (normalized === "basic" || normalized === "starter") {
+
+  // Match "basic", "starter", "growth", "standard"
+  if (
+    normalized.includes("basic") ||
+    normalized.includes("starter") ||
+    normalized.includes("growth") ||
+    normalized.includes("standard")
+  ) {
     return PLANS.basic;
   }
+
   return PLANS.free;
 }
 

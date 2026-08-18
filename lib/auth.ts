@@ -15,6 +15,8 @@ export async function getAuthUser() {
   return await currentUser();
 }
 
+import { getPlanLimits } from "@/lib/plan-limits";
+
 /**
  * Helper to ensure a Supabase 'users' record exists for the logged-in Clerk user
  */
@@ -28,17 +30,44 @@ export async function syncClerkUserWithSupabase() {
 
   if (!email) return null;
 
-  // Check and upsert in public.users table
+  // Determine initial tier from metadata if available
+  const metaTierRaw =
+    (user.publicMetadata?.plan as string) ||
+    (user.unsafeMetadata?.plan as string) ||
+    "free";
+  const initialPlan = getPlanLimits(metaTierRaw).id;
+  const dbEnumTier = initialPlan === "unlimited" ? "pro" : initialPlan === "basic" ? "starter" : "free";
+
+  // Check if user already exists to preserve active tier
+  let existingTier = dbEnumTier;
+  try {
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("tier")
+      .eq("id", user.id)
+      .single();
+
+    if (existingUser?.tier && existingUser.tier !== "free") {
+      existingTier = existingUser.tier;
+    }
+  } catch {
+    // User does not exist yet
+  }
+
+  // Upsert in public.users table with preserved/resolved tier
   const { data: userData, error } = await supabase
     .from("users")
-    .upsert({
-      id: user.id,
-      name: fullName,
-      email: email,
-      avatar_url: user.imageUrl || null,
-      tier: "free",
-      credits_remaining: 3,
-    })
+    .upsert(
+      {
+        id: user.id,
+        name: fullName,
+        email: email,
+        avatar_url: user.imageUrl || null,
+        tier: existingTier as any,
+        credits_remaining: 3,
+      },
+      { onConflict: "id" }
+    )
     .select()
     .single();
 
@@ -47,14 +76,17 @@ export async function syncClerkUserWithSupabase() {
   }
 
   // Also sync to profiles
-  await supabase.from("profiles").upsert({
-    id: user.id,
-    email: email,
-    full_name: fullName,
-    avatar_url: user.imageUrl || null,
-    tier: "free",
-    credits_remaining: 3,
-  });
+  await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: email,
+      full_name: fullName,
+      avatar_url: user.imageUrl || null,
+      tier: existingTier as any,
+      credits_remaining: 3,
+    },
+    { onConflict: "id" }
+  );
 
   return userData;
 }
